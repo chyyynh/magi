@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 import { getProposal, type Proposal } from "../utils/proposalUtils";
+import { getGeminiDecision } from "@/app/utils/aiService";
 
 interface Message {
   id: string;
   text: string;
   sender: "user" | "system";
+  isAIResult?: boolean;
   timestamp: Date;
   isLoading?: boolean;
 }
@@ -107,10 +109,25 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
               },
             ]);
           }, 500);
+          try {
+            const geminiDecision = await getGeminiDecision(result.data);
+            console.log("Updating messages for Gemini Decision...");
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now().toString(),
+                text: `Gemini Decision: ${geminiDecision}`,
+                sender: "system",
+                timestamp: new Date(),
+              },
+            ]);
+          } catch (error: any) {
+            console.error("Error in getGeminiDecision:", error);
+          }
         }
-      } catch (error) {
+      } catch (error: any) {
         // Handle error
-        onProposalLoaded(null);
+        console.error("Error fetching proposal:", error);
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === loadingMsgId

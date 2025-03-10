@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import AIProposalDecision from "./AIProposalDecision";
 
 interface MagiInterfaceProps {
-  proposalID?: string;
+  proposalID: string;
   title?: string;
   content?: string;
   choices?: string[];
@@ -87,6 +88,7 @@ export default function MagiInterface({
               </div>
             </div>
           </div>
+          {proposalID && <AIProposalDecision proposalID={proposalID} />}
 
           {/* CASPER */}
           <div className="absolute bottom-20 left-0 w-[40%] h-32 border-2 border-[#FF6600] bg-[#00AAFF]/80">

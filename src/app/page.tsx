@@ -2,7 +2,7 @@
 
 import ChatBot from "@/app/components/ChatBot";
 import MagiInterface from "@/app/components/magi-ui";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface Proposal {
   id: string;
@@ -28,19 +28,28 @@ interface Proposal {
 
 export default function Page() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
+  const [proposalID, setProposalID] = useState<string | null>(null);
+
+  const handleProposalLoaded = useCallback(
+    (proposal: Proposal | null, proposalID: string | null) => {
+      setProposal(proposal);
+      setProposalID(proposalID);
+    },
+    [setProposal, setProposalID]
+  );
 
   return (
     <div className="flex h-screen overflow-hidden">
       <div className="w-4/5 h-full">
         <MagiInterface
-          proposalID={proposal?.id || ""}
+          proposalID={proposalID!}
           title={proposal?.title || ""}
           content={proposal?.body || ""}
           choices={proposal?.choices || []}
         />
       </div>
       <div className="w-1/5 h-full">
-        <ChatBot onProposalLoaded={setProposal} />
+        <ChatBot onProposalLoaded={handleProposalLoaded} />
       </div>
     </div>
   );
