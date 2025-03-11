@@ -28,10 +28,11 @@ interface ChatBotProps {
 
 export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
   const [input, setInput] = useState("");
-  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
+  // const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  console.log(geminiDecision);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -94,6 +95,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
         // If successful, add details message
         if (result.success && result.data) {
+          onProposalLoaded(result.data, true, null);
           setTimeout(() => {
             setMessages((prev) => [
               ...prev,
