@@ -1,26 +1,41 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import AIProposalDecision from "./AIProposalDecision";
 
 interface MagiInterfaceProps {
   proposalID: string;
   title?: string;
+  geminiDecisionLoading?: boolean;
+  geminiDecision?: string | null;
 }
 
 export default function MagiInterface({
   proposalID,
   title,
+  geminiDecisionLoading,
+  geminiDecision,
 }: MagiInterfaceProps) {
   const [blinking, setBlinking] = useState(false);
+  const [bgColor, setBgColor] = useState("#FF6600"); // 初始為橘色
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setBlinking((prev) => !prev);
-    }, 800);
+    if (geminiDecision == "For") {
+      setBgColor("#00FF66");
+    } else if (geminiDecision == "Against") {
+      setBgColor("#FF4444");
+    }
+  }, [geminiDecision]);
 
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    if (geminiDecisionLoading) {
+      const interval = setInterval(() => {
+        setBgColor((prev) => (prev === "#FF6600" ? "#000000" : "#FF6600")); // 橘 ↔ 黑
+      }, 250);
+      return () => clearInterval(interval);
+    } else {
+      setBlinking(false);
+    }
+  }, [geminiDecisionLoading]);
 
   return (
     <div className="flex flex-col h-full bg-black font-mono text-sm overflow-hidden">
@@ -39,15 +54,19 @@ export default function MagiInterface({
       <div className="flex-1 p-4 flex items-center justify-center">
         <div className="relative w-full max-w-3xl h-[400px]">
           {/* BALTHASAR */}
-          <div className="absolute top-0 left-[30%] w-[40%] h-32 border-2 border-[#FF6600] bg-[#00AAFF]/80">
-            <div className="p-3 h-full flex flex-col">
-              <div className="text-white text-xl">BALTHASAR·2</div>
-              <div className="mt-auto text-right text-[#00FF66]">
-                {blinking && <span>修復作業中</span>}
+          <div>
+            <div
+              className="absolute top-0 left-[30%] w-[40%] h-32 border-2 border-[#FF6600]"
+              style={{ backgroundColor: bgColor }}
+            >
+              <div className="p-3 h-full flex flex-col">
+                <div className="text-white text-xl">BALTHASAR·2</div>
+                <div className="mt-auto text-right text-[#00FF66]">
+                  {geminiDecisionLoading && <span>修復作業中</span>}
+                </div>
               </div>
             </div>
           </div>
-          {proposalID && <AIProposalDecision proposalID={proposalID} />}
 
           {/* CASPER */}
           <div className="absolute bottom-20 left-0 w-[40%] h-32 border-2 border-[#FF6600] bg-[#00AAFF]/80">

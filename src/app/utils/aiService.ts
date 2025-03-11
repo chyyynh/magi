@@ -72,7 +72,7 @@ Ensure the response is a pure JSON string that can be directly parsed by JavaScr
       // console.log("Analysis:", parsedDecision.analysis);
       // console.log("Reasoning:", parsedDecision.reasoning);
       // console.log("Missing Info:", parsedDecision.missing_info);
-      return `BALTHASAR·2: ${parsedDecision.recommendation}`;
+      return `${parsedDecision.recommendation}`;
     } catch (error) {
       console.error("Error parsing JSON:", error);
       return `BALTHASAR·2: Error - ${error.message}`;

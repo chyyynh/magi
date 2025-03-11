@@ -19,11 +19,17 @@ interface Message {
 }
 
 interface ChatBotProps {
-  onProposalLoaded: (proposal: Proposal | null) => void;
+  onProposalLoaded: (
+    proposal: Proposal | null,
+    geminiDecisionLoading: boolean,
+    geminiDecision: string | null
+  ) => void;
 }
 
 export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
   const [input, setInput] = useState("");
+  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
+  const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -70,10 +76,10 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
       ]);
 
       setIsLoading(true);
+      onProposalLoaded(null, true, null);
 
       try {
         const result = await getProposal(input);
-        onProposalLoaded(result.data);
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === loadingMsgId
@@ -104,13 +110,17 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
             ]);
           }, 500);
           try {
-            const geminiDecision = await getGeminiDecision(result.data);
-            console.log("Updating messages for Gemini Decision...");
+            const geminiDecisionResult = await getGeminiDecision(result.data);
+            setGeminiDecision(geminiDecisionResult);
+            onProposalLoaded(result.data, false, geminiDecisionResult);
+            console.log(
+              `Updating messages for Gemini Decision: ${geminiDecisionResult}`
+            );
             setMessages((prev) => [
               ...prev,
               {
                 id: Date.now().toString(),
-                text: `Gemini Decision: ${geminiDecision}`,
+                text: `Gemini Decision: ${geminiDecisionResult}`,
                 sender: "system",
                 timestamp: new Date(),
               },
@@ -165,17 +175,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
   return (
     <div className="flex flex-col h-full border-l border-[#FF6600]/50 bg-black text-white font-mono">
-      {/* Fixed header 
-      <div className="flex-none p-4 border-b border-[#FF6600]/50 bg-black">
-        <h2 className="text-lg font-bold text-[#FF6600]">MAGI TERMINAL</h2>
-        <div className="text-xs text-[#00FF66]">
-          <span className="mr-2">STATUS:</span>
-          <span className={isLoading ? "animate-pulse" : ""}>
-            {isLoading ? "PROCESSING" : "ACTIVE"}
-          </span>
-        </div>
-      </div>
-*/}
       {/* Scrollable messages container */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {messages.map((message) => (

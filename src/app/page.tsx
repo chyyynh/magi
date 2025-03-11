@@ -30,11 +30,19 @@ interface Proposal {
 export default function Page() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [proposalID, setProposalID] = useState<string | null>(null);
+  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
+  const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
 
   const handleProposalLoaded = useCallback(
-    (proposal: Proposal | null, proposalID: string | null) => {
+    (
+      proposal: Proposal | null,
+      geminiDecisionLoading: boolean,
+      geminiDecision: string | null
+    ) => {
       setProposal(proposal);
       setProposalID(proposalID);
+      setGeminiDecisionLoading(geminiDecisionLoading);
+      setGeminiDecision(geminiDecision);
     },
     [setProposal, setProposalID]
   );
@@ -55,12 +63,22 @@ export default function Page() {
           <MagiInterface
             proposalID={proposalID!}
             title={proposal?.title || ""}
+            geminiDecisionLoading={geminiDecisionLoading}
+            geminiDecision={geminiDecision}
           />
         </div>
         <div className="w-1/5">
           <ChatBot
-            onProposalLoaded={(proposal) =>
-              handleProposalLoaded(proposal, proposalID)
+            onProposalLoaded={(
+              proposal,
+              geminiDecisionLoading,
+              geminiDecision
+            ) =>
+              handleProposalLoaded(
+                proposal,
+                geminiDecisionLoading,
+                geminiDecision
+              )
             }
           />
         </div>
