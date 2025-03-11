@@ -2,6 +2,7 @@
 
 import ChatBot from "@/app/components/ChatBot";
 import MagiInterface from "@/app/components/magi-ui";
+import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
 
 interface Proposal {
@@ -39,17 +40,30 @@ export default function Page() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <div className="w-4/5 h-full">
-        <MagiInterface
-          proposalID={proposalID!}
-          title={proposal?.title || ""}
-          content={proposal?.body || ""}
-          choices={proposal?.choices || []}
-        />
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="flex-col p-4 border-b border-[#FF6600]/50 bg-black">
+        <h2 className="text-3xl font-bold text-[#FF6600]">MAGI TERMINAL</h2>
       </div>
-      <div className="w-1/5 h-full">
-        <ChatBot onProposalLoaded={handleProposalLoaded} />
+      <div className="flex flex-row overflow-hidden flex-grow">
+        <div className="w-1/5">
+          <PropUI
+            content={proposal?.body || ""}
+            choices={proposal?.choices || []}
+          />
+        </div>
+        <div className="w-3/5">
+          <MagiInterface
+            proposalID={proposalID!}
+            title={proposal?.title || ""}
+          />
+        </div>
+        <div className="w-1/5">
+          <ChatBot
+            onProposalLoaded={(proposal) =>
+              handleProposalLoaded(proposal, proposalID)
+            }
+          />
+        </div>
       </div>
     </div>
   );

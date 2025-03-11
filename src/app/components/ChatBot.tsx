@@ -24,6 +24,9 @@ interface ChatBotProps {
 
 export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -32,8 +35,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
       timestamp: new Date(),
     },
   ]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,8 +46,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
-
-    // Add user message to chat
     const userMessage: Message = {
       id: Date.now().toString(),
       text: input,
@@ -73,13 +72,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
       setIsLoading(true);
 
       try {
-        // Process as a proposal ID
         const result = await getProposal(input);
-
-        // Update parent component with the fetched proposal
         onProposalLoaded(result.data);
-
-        // Update loading message with result
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === loadingMsgId
@@ -100,9 +94,9 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
               {
                 id: Date.now().toString(),
                 text: `Proposal "${
-                  result.data.title
+                  result.data?.title
                 }" loaded into MAGI system. ${
-                  result.data.choices?.length || 0
+                  result.data?.choices?.length || 0
                 } choices available.`,
                 sender: "system",
                 timestamp: new Date(),
@@ -121,11 +115,11 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 timestamp: new Date(),
               },
             ]);
-          } catch (error: any) {
+          } catch (error) {
             console.error("Error in getGeminiDecision:", error);
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         // Handle error
         console.error("Error fetching proposal:", error);
         setMessages((prev) =>
@@ -156,8 +150,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
         ]);
       }, 300);
     }
-
-    // Clear input
     setInput("");
   };
 
@@ -173,7 +165,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
   return (
     <div className="flex flex-col h-full border-l border-[#FF6600]/50 bg-black text-white font-mono">
-      {/* Fixed header */}
+      {/* Fixed header 
       <div className="flex-none p-4 border-b border-[#FF6600]/50 bg-black">
         <h2 className="text-lg font-bold text-[#FF6600]">MAGI TERMINAL</h2>
         <div className="text-xs text-[#00FF66]">
@@ -183,7 +175,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
           </span>
         </div>
       </div>
-
+*/}
       {/* Scrollable messages container */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
         {messages.map((message) => (

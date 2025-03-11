@@ -6,15 +6,11 @@ import AIProposalDecision from "./AIProposalDecision";
 interface MagiInterfaceProps {
   proposalID: string;
   title?: string;
-  content?: string;
-  choices?: string[];
 }
 
 export default function MagiInterface({
   proposalID,
   title,
-  content,
-  choices,
 }: MagiInterfaceProps) {
   const [blinking, setBlinking] = useState(false);
 
@@ -28,16 +24,6 @@ export default function MagiInterface({
 
   return (
     <div className="flex flex-col h-full bg-black font-mono text-sm overflow-hidden">
-      {/* Grid lines overlay */}
-      <div
-        className="absolute inset-0 opacity-10 pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(0deg, #333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
-        }}
-      />
-
       {/* Fixed Header section */}
       <div className="flex-none p-4 z-10">
         <div className="flex items-center gap-4 text-[#FF6600]">
@@ -46,33 +32,6 @@ export default function MagiInterface({
             <span>Proposal ID: {proposalID || "N/A"}</span>
             <span>Title: {title || "No proposal loaded"}</span>
           </div>
-        </div>
-      </div>
-
-      {/* Fixed content section */}
-      <div className="flex-none p-4 max-h-[20%] overflow-y-auto">
-        <div className="text-xs text-white">
-          <span className="text-[#FF6600]">Content: </span>
-          <span className="line-clamp-3">
-            {content || "No content available"}
-          </span>
-        </div>
-        <div className="mt-2 text-xs text-white">
-          <span className="text-[#FF6600]">Choices: </span>
-          {Array.isArray(choices) && choices.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {choices.map((choice, index) => (
-                <span
-                  key={index}
-                  className="bg-[#FF6600]/20 border border-[#FF6600]/50 px-2 py-1 rounded"
-                >
-                  {choice}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <span>No choices available</span>
-          )}
         </div>
       </div>
 
