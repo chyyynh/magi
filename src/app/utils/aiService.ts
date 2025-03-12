@@ -42,7 +42,7 @@ export async function getGeminiDecision(proposal: Proposal): Promise<string> {
 
       Response format (PLS REPSPONSE WITH PURE JSON):
       {
-        "recommendation": "The chosen voting option from 'choices'",
+        "recommendation": "pls choose from Against/For/Abstain, if this is not a yes/no question pls choose from 'choices'",
         "analysis": {
           "objectives_and_impact": "Analysis of objectives and impact",
           "resource_allocation": "Analysis of resource allocation",
@@ -68,7 +68,7 @@ export async function getGeminiDecision(proposal: Proposal): Promise<string> {
       const parsedDecision = JSON.parse(decision);
       // console.log("API response:", parsedDecision);
       // console.log("Recommendation:", parsedDecision.recommendation);
-      // console.log("Analysis:", parsedDecision.analysis);
+      console.log("Analysis:", parsedDecision.analysis);
       // console.log("Reasoning:", parsedDecision.reasoning);
       // console.log("Missing Info:", parsedDecision.missing_info);
       return `${parsedDecision.recommendation}`;

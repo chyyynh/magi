@@ -95,6 +95,19 @@ export default function MagiInterface({
             </ClippedRecBal>
           </div>
 
+          {geminiDecision && (
+            <div className="text-4xl text-white absolute top-25 right-0">
+              <div
+                className="p-1 border-1 border-[#FF6600]"
+                color={bgColorBalthasar}
+              >
+                <div className="p-2 border-1 border-[#FF6600]">
+                  {geminiDecision}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* CASPER */}
           <div className="absolute bottom-20 left-0 h-32">
             <ClippedRecCas width={280} height={160} color={bgColorCasper}>
