@@ -2,7 +2,7 @@
 
 import ChatBot from "@/app/components/ChatBot";
 import MagiInterface from "@/app/components/magi-ui";
-import ReasonUI from "@/app/components/reason-ui";
+// import ReasonUI from "@/app/components/reason-ui";
 import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
 
