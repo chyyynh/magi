@@ -2,6 +2,7 @@
 
 import ChatBot from "@/app/components/ChatBot";
 import MagiInterface from "@/app/components/magi-ui";
+// import ReasonUI from "@/app/components/reason-ui";
 import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
 
@@ -59,7 +60,7 @@ export default function Page() {
             choices={proposal?.choices || []}
           />
         </div>
-        <div className="w-3/5">
+        <div className="flex flex-col w-3/5">
           <MagiInterface
             proposalID={proposalID!}
             title={proposal?.title || ""}
