@@ -15,7 +15,7 @@ const ClippedRecCas: React.FC<ClippedRectangleProps> = ({
 }) => {
   const borderColor = "#FF6600";
   const borderWidth = 4;
-  const clipPath = "polygon(0% 0%, 80% 0%, 100% 20%, 100% 100%, 0% 100%)";
+  const clipPath = "polygon(0% 0%, 80% 0%, 100% 35%, 100% 100%, 0% 100%)";
 
   const outerStyle: React.CSSProperties = {
     width: `${width}px`,

@@ -127,7 +127,7 @@ export default function MagiInterface({
               <div className="absolute top-0 left-[50%] transform -translate-x-1/2 h-32">
                 <ClippedRecBal
                   width={250}
-                  height={250}
+                  height={300}
                   color={bgColorBalthasar}
                 >
                   <div className="text-black text-xl font-black">
@@ -142,7 +142,7 @@ export default function MagiInterface({
           </HoverCard>
 
           {geminiDecision && (
-            <div className="absolute bottom-45 right-0 flex items-center justify-center z-20">
+            <div className="absolute bottom-35 right-0 flex items-center justify-center z-20">
               <div
                 className="p-0.5 border-1 border-[#FF6600]"
                 color={bgColorBalthasar}
@@ -158,22 +158,22 @@ export default function MagiInterface({
           )}
 
           {/* CASPER */}
-          <div className="absolute bottom-10 left-0 h-32">
-            <ClippedRecCas width={280} height={160} color={bgColorCasper}>
+          <div className="absolute bottom-0 left-0 h-32">
+            <ClippedRecCas width={310} height={160} color={bgColorCasper}>
               <div className="text-black text-xl font-black">CASPER·3</div>
             </ClippedRecCas>
           </div>
 
           {/* MELCHIOR */}
-          <div className="absolute bottom-10 right-0 h-32">
-            <ClippedRecMel width={280} height={160} color={bgColorMelchior}>
+          <div className="absolute bottom-0 right-0 h-32">
+            <ClippedRecMel width={310} height={160} color={bgColorMelchior}>
               <div className="text-black text-xl font-black">MELCHIOR·1</div>
             </ClippedRecMel>
           </div>
 
           {/* MAGI center node */}
           <div
-            className={`${notoSansTC.className} absolute top-[45%] left-[50%] transform -translate-x-1/2 text-[#FF6600] font-bold text-2xl`}
+            className={`${notoSansTC.className} absolute top-[80%] left-[50%] transform -translate-x-1/2 text-[#FF6600] font-bold text-2xl`}
           >
             MAGI
           </div>

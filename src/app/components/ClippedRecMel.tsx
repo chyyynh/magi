@@ -16,7 +16,7 @@ const ClippedRectangle: React.FC<ClippedRectangleProps> = ({
   children,
 }) => {
   // The clip path for both the outer and inner elements
-  const clipPath = "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20%)";
+  const clipPath = "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 35%)";
   const borderColor = "#FF6600";
   const borderWidth = 4;
 
