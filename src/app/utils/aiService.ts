@@ -29,7 +29,9 @@ if (!geminiApiKey) {
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-export async function getGeminiDecision(proposal: Proposal): Promise<string> {
+export async function getGeminiDecision(
+  proposal: Proposal
+): Promise<{ decision: string; reason?: string }> {
   console.log("getBalthasar2Decision called");
   try {
     const prompt = `I need you to help me vote on a governance proposal, with the voting options listed in the "choices" field as follows: ${proposal.choices}. The full details of the proposal are as follows: ${proposal.title} ${proposal.body}. Please analyze the proposal based on the following criteria and respond in JSON format:
@@ -66,18 +68,17 @@ export async function getGeminiDecision(proposal: Proposal): Promise<string> {
     console.log(decision);
     try {
       const parsedDecision = JSON.parse(decision);
-      // console.log("API response:", parsedDecision);
-      // console.log("Recommendation:", parsedDecision.recommendation);
       console.log("Analysis:", parsedDecision.analysis);
-      // console.log("Reasoning:", parsedDecision.reasoning);
-      // console.log("Missing Info:", parsedDecision.missing_info);
-      return `${parsedDecision.recommendation}`;
+      return {
+        decision: `${parsedDecision.recommendation}`,
+        reason: `${parsedDecision.reasoning}`,
+      };
     } catch (error) {
       console.error("Error parsing JSON:", error);
-      return `BALTHASAR·2: Error - ${error}`;
+      return { decision: `Error parsing JSON` };
     }
   } catch (error) {
     console.error("Error calling Gemini API:", error);
-    return `BALTHASAR·2: Error - ${error}`;
+    return { decision: `Error calling Gemini API` };
   }
 }

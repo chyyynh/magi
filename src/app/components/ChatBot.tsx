@@ -113,8 +113,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
           }, 500);
           try {
             const geminiDecisionResult = await getGeminiDecision(result.data);
-            setGeminiDecision(geminiDecisionResult);
-            onProposalLoaded(result.data, false, geminiDecisionResult);
+            setGeminiDecision(geminiDecisionResult.decision);
+            onProposalLoaded(result.data, false, geminiDecisionResult.decision);
             console.log(
               `Updating messages for Gemini Decision: ${geminiDecisionResult}`
             );
@@ -122,7 +122,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
               ...prev,
               {
                 id: Date.now().toString(),
-                text: `Gemini Decision: ${geminiDecisionResult}`,
+                text: `Gemini Decision: ${geminiDecisionResult.decision}: ${geminiDecisionResult.reason}`,
                 sender: "system",
                 timestamp: new Date(),
               },

@@ -2,7 +2,6 @@
 
 import ChatBot from "@/app/components/ChatBot";
 import MagiInterface from "@/app/components/magi-ui";
-// import ReasonUI from "@/app/components/reason-ui";
 import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -46,7 +45,7 @@ export default function Page() {
       setGeminiDecisionLoading(geminiDecisionLoading);
       setGeminiDecision(geminiDecision);
     },
-    [setProposal, setProposalID]
+    [setProposal, setProposalID, proposalID]
   );
 
   return (
