@@ -5,6 +5,7 @@ import MagiInterface from "@/app/components/magi-ui";
 // import ReasonUI from "@/app/components/reason-ui";
 import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 interface Proposal {
   id: string;
@@ -50,8 +51,9 @@ export default function Page() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden  bg-black">
-      <div className="p-4 border-b border-[#FF6600]/50">
+      <div className="p-4 border-b border-[#FF6600]/50 flex justify-between items-center">
         <h2 className="text-3xl font-bold text-[#FF6600]">MAGI TERMINAL</h2>
+        <ConnectButton />
       </div>
       <div className="flex flex-col sm:flex-row overflow-hidden flex-grow">
         <div className="w-1/5">
