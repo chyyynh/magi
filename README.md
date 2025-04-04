@@ -8,9 +8,9 @@
 
 The Magi System (マギ) are a trio of multipurpose supercomputers most commonly seen being used to aid NERV in their effort to defeat the Angels across the Evangelion franchise. - [ref](https://evangelion.fandom.com/wiki/Magi)
 
-this's a dao voting UI for LLM (now Gemini AI only cause free long context) making desivion inspired by Magi in Eva.
+this's a dao voting UI for LLM (now Gemini AI only, because of free long context) making desivion inspired by Magi in Eva.
 
-## Prompt(also in utils/aiService.ts)
+## Prompt (also in utils/aiService.ts)
 
 I need you to help me vote on a governance proposal, with the voting options listed in the "choices" field as follows: ${proposal.choices}. The full details of the proposal are as follows: ${proposal.title} ${proposal.body}. Please analyze the proposal based on the following criteria and respond in JSON format:
 
