@@ -60,5 +60,5 @@ Ensure the response is a pure JSON string that can be directly parsed by JavaScr
 
 ## Tool
 
-[Snapshot API](https://docs.snapshot.box/tools/api): For seamless DAO proposal submission and voting.
-Gemini AI: For detailed, long-context proposal analysis.
+- [Snapshot API](https://docs.snapshot.box/tools/api): For seamless DAO proposal submission and voting.
+- Gemini AI: For detailed, long-context proposal analysis.
