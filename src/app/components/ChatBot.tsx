@@ -1,13 +1,15 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
 import { getProposal, type Proposal } from "../utils/proposalUtils";
 import { getGeminiDecision } from "@/app/utils/aiService";
+import { Web3Provider } from "@ethersproject/providers";
+import snapshot from "@snapshot-labs/snapshot.js";
+import { useAccount, useWalletClient } from "wagmi";
 
 interface Message {
   id: string;
@@ -16,6 +18,11 @@ interface Message {
   isAIResult?: boolean;
   timestamp: Date;
   isLoading?: boolean;
+  buttons?: {
+    text: string;
+    action: string;
+    data: any;
+  }[];
 }
 
 interface ChatBotProps {
@@ -26,13 +33,23 @@ interface ChatBotProps {
   ) => void;
 }
 
+interface VoteParams {
+  space: string;
+  proposal: string;
+  type: "single-choice"; // Assuming this is fixed for now
+  choice: number; // Gemini decision is likely a number (index + 1)
+  reason: string;
+  app: "Magi"; // App name
+}
+
 export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
   const [input, setInput] = useState("");
   // const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  console.log(geminiDecision);
+  const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -45,6 +62,41 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleVote = async () => {
+    if (!walletClient || !address) {
+      alert("請先連結錢包");
+      return;
+    }
+
+    const client = new snapshot.Client712("https://hub.snapshot.org");
+    const web3 = new Web3Provider(window.ethereum);
+
+    try {
+      const receipt = await client.vote(web3, address, {
+        space: "ens.eth",
+        proposal:
+          "0x60c95ab69a427ce263f4c3c950df8da1134e96a3e76d139c8dac366271009530",
+        type: "single-choice",
+        choice: 1,
+      });
+
+      console.log("Vote success:", receipt);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: `✅ 已成功投票到提案 ${proposalId}`,
+          sender: "system",
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (err) {
+      console.error("投票錯誤:", err);
+      alert("投票失敗，請查看 console");
+    }
   };
 
   useEffect(() => {
@@ -125,6 +177,14 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 text: `Gemini Decision: ${geminiDecisionResult.decision}: ${geminiDecisionResult.reason}`,
                 sender: "system",
                 timestamp: new Date(),
+                buttons: [
+                  {
+                    text: "Snapshot Vote",
+                    action: "snapshot",
+                    reason: "geminiDecisionResult.reason",
+                    data: "geminiDecisionResult.decision",
+                  },
+                ],
               },
             ]);
           } catch (error) {
@@ -199,6 +259,37 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 )}
                 <p className="text-sm">{message.text}</p>
               </div>
+              {message.buttons && message.buttons.length > 0 && (
+                <div className="mt-2 flex gap-2">
+                  {message.buttons.map((button) => (
+                    <button
+                      key={button.text}
+                      onClick={() => {
+                        if (button.action === "snapshot") {
+                          handleVote();
+                          console.log(
+                            `Creating snapshot for vote: ${button.data}`
+                          );
+                          // 可以添加一个新消息来确认快照已创建
+                          setMessages((prev) => [
+                            ...prev,
+                            {
+                              id: Date.now().toString(),
+                              text: `Vote snapshot created for: ${button.data}`,
+                              sender: "system",
+                              timestamp: new Date(),
+                            },
+                          ]);
+                          // 这里你可以添加更多逻辑，例如保存快照到数据库或本地存储
+                        }
+                      }}
+                      className="text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
+                    >
+                      {button.text}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <span className="text-xs text-gray-500 mt-1">
               {formatTime(message.timestamp)}
