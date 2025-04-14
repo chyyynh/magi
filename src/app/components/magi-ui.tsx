@@ -32,7 +32,7 @@ export default function MagiInterface({
   geminiDecisionLoading,
   geminiDecision,
 }: MagiInterfaceProps) {
-  const [blinking, setBlinking] = useState(false);
+  const [, /*blink*/ setBlinking] = useState(false);
   const [bgColorBalthasar, setBgColorBalthasar] = useState("#FF6600");
   const [bgColorCasper, setBgColorCasper] = useState("#FF6600");
   const [bgColorMelchior, setBgColorMelchior] = useState("#FF6600");
