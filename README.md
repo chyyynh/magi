@@ -10,8 +10,25 @@ The Magi System (マギ) are a trio of multipurpose supercomputers most commonly
 
 this's a dao voting UI for LLM (now Gemini AI only, because of free long context) making desivion inspired by Magi in Eva.
 
-## Prompt (also in utils/aiService.ts)
+## Feature
 
+- AI-Powered Proposal Analysis: Uses Gemini AI to evaluate DAO governance proposals.
+- Inspired Design: Aesthetic and functionality based on Neon Genesis Evangelion's Magi System.
+- Snapshot Integration: Supports governance voting using Snapshot's API.
+- Detailed Evaluation Criteria:
+  - Objectives and Impact
+  - Resource Allocation
+  - Feasibility
+  - Outcome Assessment
+  - Risks and Alternatives
+
+## How It Works (also in utils/aiService.ts)
+
+When a proposal is provided, Magi utilizes the following prompt to guide the AI in analyzing the proposal:
+
+### AI Prompt (Defined in utils/aiService.ts)
+
+```
 I need you to help me vote on a governance proposal, with the voting options listed in the "choices" field as follows: ${proposal.choices}. The full details of the proposal are as follows: ${proposal.title} ${proposal.body}. Please analyze the proposal based on the following criteria and respond in JSON format:
 
 Analysis criteria:
@@ -39,7 +56,9 @@ Response format (PLS REPSPONSE WITH PURE JSON):
 Provide a detailed analysis and recommend a voting option from the "choices" provided (${proposal.choices}). If the proposal lacks sufficient information, note what’s missing in "missing_info" and suggest an appropriate option (e.g., a neutral one if available).
 
 Ensure the response is a pure JSON string that can be directly parsed by JavaScript's JSON.parse, without any additional characters. Provide a detailed analysis and recommend a voting option from the "choices" provided ([insert choices content]). If the proposal lacks sufficient information, note what’s missing in "missing_info" and suggest an appropriate option (e.g., a neutral one if available).
+```
 
 ## Tool
 
-https://docs.snapshot.box/tools/api
+[Snapshot API](https://docs.snapshot.box/tools/api): For seamless DAO proposal submission and voting.
+Gemini AI: For detailed, long-context proposal analysis.
