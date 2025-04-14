@@ -9,11 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ethersproject/providers": "^5.8.0",
     "@google/generative-ai": "^0.24.0",
     "@radix-ui/react-hover-card": "^1.1.6",
     "@radix-ui/react-slot": "^1.1.2",
     "@rainbow-me/rainbowkit": "^2.2.4",
-    "@snapshot-labs/snapshot.js": "^0.1.2",
+    "@snapshot-labs/snapshot.js": "^0.12.58",
     "@tanstack/react-query": "^5.69.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -32,7 +32,7 @@ export default function MagiInterface({
   geminiDecisionLoading,
   geminiDecision,
 }: MagiInterfaceProps) {
-  const [blinking, setBlinking] = useState(false);
+  const [, /*blink*/ setBlinking] = useState(false);
   const [bgColorBalthasar, setBgColorBalthasar] = useState("#FF6600");
   const [bgColorCasper, setBgColorCasper] = useState("#FF6600");
   const [bgColorMelchior, setBgColorMelchior] = useState("#FF6600");
@@ -83,8 +83,18 @@ export default function MagiInterface({
       };
     } else {
       setBlinking(false);
+      // Ensure final colors are set when loading finishes
+      const finalColor =
+        geminiDecision === "For"
+          ? "#00FF66"
+          : geminiDecision === "Against"
+          ? "#FF4444"
+          : "#FF6600";
+      setBgColorBalthasar(finalColor);
+      setBgColorCasper(finalColor);
+      setBgColorMelchior(finalColor);
     }
-  }, [geminiDecisionLoading]);
+  }, [geminiDecisionLoading, geminiDecision]); // Added geminiDecision dependency here too
 
   const decisionText = {
     For: "支持",
@@ -141,21 +151,25 @@ export default function MagiInterface({
             </HoverCardContent>
           </HoverCard>
 
-          {geminiDecision && (
-            <div className="absolute bottom-35 right-0 flex items-center justify-center z-20">
+          {/* Decision Text Display */}
+          <div className="absolute bottom-35 right-0 flex items-center justify-center z-20">
+            {/* Conditional rendering based on loading state */}
+            {!geminiDecisionLoading && geminiDecision && (
               <div
                 className="p-0.5 border-1 border-[#FF6600]"
-                color={bgColorBalthasar}
+                // Use final color for border consistency? Or keep orange? Let's keep orange for now.
               >
                 <div
-                  className={`${notoSansTC.className} p-2 border-1 items-center text-4xl border-[#FF6600] text-[#FF6600]`}
+                  className={`${notoSansTC.className} p-2 border-1 items-center text-4xl border-[#FF6600]`}
+                  // Text color based on decision
+                  style={{ color: bgColorBalthasar }} // Use the dynamic color state
                 >
                   {decisionText[geminiDecision as keyof typeof decisionText] ||
                     "未知"}
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* CASPER */}
           <div className="absolute bottom-0 left-0 h-32">
@@ -184,7 +198,8 @@ export default function MagiInterface({
       <div className="absolute bottom-0 left-0 right-0 p-4 text-[#00FF66] text-xs z-30">
         <div className="flex justify-between items-center h-[42px]">
           <span>MAGI SYSTEM v0.1</span>
-          <span className={blinking ? "opacity-100" : "opacity-0"}>
+          {/* Use geminiDecisionLoading directly for clarity */}
+          <span className={geminiDecisionLoading ? "opacity-100" : "opacity-0"}>
             PROCESSING DATA
           </span>
         </div>
