@@ -5,28 +5,7 @@ import MagiInterface from "@/app/components/magi-ui";
 import PropUI from "@/app/components/PropUI";
 import { useState, useCallback } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-
-interface Proposal {
-  id: string;
-  title: string;
-  body: string;
-  choices: string[];
-  start: number;
-  end: number;
-  state: string;
-  author: string;
-  space: {
-    id: string;
-    name: string;
-  };
-  scores_total: number;
-  scores: number[];
-  votes: {
-    voter: string;
-    choice: number;
-    vp: number;
-  }[];
-}
+import { type Proposal } from "@/app/utils/proposalUtils";
 
 export default function Page() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
@@ -71,11 +50,7 @@ export default function Page() {
         </div>
         <div className="w-1/5">
           <ChatBot
-            onProposalLoaded={(
-              proposal,
-              geminiDecisionLoading,
-              geminiDecision
-            ) =>
+            onProposalLoaded={(proposal: Proposal | null) =>
               handleProposalLoaded(
                 proposal,
                 geminiDecisionLoading,
