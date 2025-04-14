@@ -50,7 +50,11 @@ export default function Page() {
         </div>
         <div className="w-1/5">
           <ChatBot
-            onProposalLoaded={(proposal: Proposal | null) =>
+            onProposalLoaded={(
+              proposal,
+              geminiDecisionLoading,
+              geminiDecision
+            ) =>
               handleProposalLoaded(
                 proposal,
                 geminiDecisionLoading,

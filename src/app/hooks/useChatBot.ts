@@ -59,6 +59,7 @@ export function useChatBot(
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
+  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false); // 新增此狀態
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -143,8 +144,8 @@ export function useChatBot(
         isLoading: true,
       });
 
-      setIsLoading(true);
-      onProposalLoaded(null, true, null);
+      setGeminiDecisionLoading(true);
+      onProposalLoaded(null, geminiDecisionLoading, null); // 通知父組件
 
       try {
         const result = await getProposal(input);
@@ -172,9 +173,6 @@ export function useChatBot(
           const decision = geminiDecisionResult.decision || null; // 確保是 null 或字串
 
           setGeminiDecision(decision);
-          console.log("Gemini Decision Result:", decision);
-          console.log("Gemini Decision Result:", geminiDecision);
-          onProposalLoaded(proposal, false, geminiDecisionResult.decision);
 
           addMessage({
             id: Date.now().toString(),
@@ -190,6 +188,8 @@ export function useChatBot(
               },
             ],
           });
+          setGeminiDecisionLoading(false); // 設置 geminiDecisionLoading 為 true
+          onProposalLoaded(proposal, false, geminiDecisionResult.decision); // 通知父組件
         }
       } catch (error) {
         console.error("Error fetching proposal:", error);
@@ -209,7 +209,6 @@ export function useChatBot(
         timestamp: new Date(),
       });
     }
-
     setInput("");
   };
 

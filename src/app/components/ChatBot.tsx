@@ -5,7 +5,11 @@ import { Send, Loader2 } from "lucide-react";
 import { type Proposal } from "@/app/utils/proposalUtils";
 
 interface ChatBotProps {
-  onProposalLoaded: (proposal: Proposal) => void;
+  onProposalLoaded: (
+    proposal: Proposal | null,
+    geminiLoading: boolean,
+    geminiDecision: string | null
+  ) => void;
 }
 
 export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
@@ -17,10 +21,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
     messagesEndRef,
     handleSendMessage,
     handleVote,
-  } = useChatBot((proposal) => {
-    if (proposal) {
-      onProposalLoaded(proposal);
-    }
+  } = useChatBot((proposal, geminiLoading, geminiDecision) => {
+    onProposalLoaded(proposal, geminiLoading, geminiDecision);
   });
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
