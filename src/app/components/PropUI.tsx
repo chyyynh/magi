@@ -1,5 +1,7 @@
 "use client";
 
+import ReactMarkdown from "react-markdown";
+
 interface PropUIProps {
   content?: string;
   choices?: string[];
@@ -7,14 +9,8 @@ interface PropUIProps {
 
 export default function PropUI({ content, choices }: PropUIProps) {
   return (
-    <div className="flex flex-col h-full border-r border-[#FF6600]/50 bg-black text-white font-mono p-4 overflow-y-auto">
+    <div className="flex flex-col h-full border-r border-[#FF6600]/50 bg-black text-white font-mono p-4 overflow-y-auto hide-scrollbar">
       <div className="text-xs">
-        <span className="text-[#FF6600]">Content: </span>
-        <span className="line-clamp-30">
-          {content || "No content available"}
-        </span>
-      </div>
-      <div className="mt-2 text-xs">
         <span className="text-[#FF6600]">Choices: </span>
         {Array.isArray(choices) && choices.length > 0 ? (
           <div className="flex flex-wrap gap-2 mt-1">
@@ -29,6 +25,14 @@ export default function PropUI({ content, choices }: PropUIProps) {
           </div>
         ) : (
           <span>No choices available</span>
+        )}
+      </div>
+      <div className="mt-2 text-xs prose prose-invert prose-sm max-w-none">
+        <span className="text-[#FF6600]">Content: </span>
+        {content ? (
+          <ReactMarkdown>{content}</ReactMarkdown>
+        ) : (
+          <span>No content available</span>
         )}
       </div>
     </div>

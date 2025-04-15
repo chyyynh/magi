@@ -37,7 +37,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
 
   return (
     <div className="flex flex-col h-full border-l border-[#FF6600]/50 bg-black text-white font-mono">
-      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 hide-scrollbar">
         {messages.map((message) => (
           <div
             key={message.id}
