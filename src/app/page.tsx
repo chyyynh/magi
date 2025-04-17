@@ -16,7 +16,7 @@ export default function Page() {
   // const handleProposalLoaded = useCallback(...)
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-black">
+    <div className="flex flex-col h-dvh overflow-hidden bg-black">
       {/* Header remains the same */}
       <div className="flex p-4 border-b border-[#FF6600]/50 justify-between items-center">
         <h2 className="text-lg sm:text-3xl font-bold text-[#FF6600]">

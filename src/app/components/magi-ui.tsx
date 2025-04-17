@@ -17,12 +17,6 @@ const notoSansTC = Noto_Serif_TC({
   display: "swap",
 });
 
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-
 // Props needed by layout components
 interface LayoutProps {
   proposal: Proposal | null; // Add proposal state
@@ -88,20 +82,11 @@ const DesktopLayout: React.FC<LayoutProps> = ({
       <div className="absolute inset-0 p-4 flex justify-center z-20">
         <div className="relative w-full max-w-3xl h-[400px]">
           {/* BALTHASAR */}
-          <HoverCard>
-            <HoverCardTrigger>
-              <div className="absolute top-0 left-[50%] transform -translate-x-1/2 h-32">
-                <ClippedRecBal color={bgColorBalthasar}>
-                  <div className="text-black text-xl font-black">
-                    BALTHASAR·2
-                  </div>
-                </ClippedRecBal>
-              </div>
-            </HoverCardTrigger>
-            <HoverCardContent>
-              The React Framework – created and maintained by @vercel.
-            </HoverCardContent>
-          </HoverCard>
+          <div className="absolute top-0 left-[50%] transform -translate-x-1/2 h-32">
+            <ClippedRecBal color={bgColorBalthasar}>
+              <div className="text-black text-xl font-black">BALTHASAR·2</div>
+            </ClippedRecBal>
+          </div>
 
           {/* Decision Text Display */}
           <div className="absolute bottom-35 right-0 flex items-center justify-center z-20">
@@ -171,7 +156,7 @@ const MobileLayout: React.FC<LayoutProps> = ({
 
   return (
     // Use flex-col and h-dvh for vertical distribution to account for browser UI
-    <div className="flex flex-col h-dvh bg-black font-mono text-sm">
+    <div className="flex flex-col h-full bg-black font-mono text-sm">
       {/* Magi UI Section (2/5 height) */}
       <div className="h-[40%] overflow-hidden p-4 pt-6 flex flex-col items-center justify-center relative border-b border-[#FF6600]/50">
         {/* Simplified Header */}
@@ -343,19 +328,12 @@ export default function MagiInterface(/* Removed props */) {
     notoSansTCClassName: notoSansTC.className,
     onProposalLoaded: handleProposalLoaded, // Pass callback
   };
-
-  // Conditionally render the appropriate layout
-  // Render ChatBot directly if desktop, as it's not part of DesktopLayout
   if (isMobile) {
     return <MobileLayout {...layoutProps} />;
   } else {
-    // Desktop needs both DesktopLayout and ChatBot side-by-side
-    // Assuming a parent component handles this layout (e.g., grid)
-    // Or adjust here if MagiInterface should render both
     return (
       <div className="flex h-full">
         <div className="w-1/5">
-          {/* Pass proposal data to PropUI in desktop layout */}
           <PropUI content={proposal?.body} choices={proposal?.choices} />
         </div>
         <div className="w-3/5">
@@ -366,8 +344,5 @@ export default function MagiInterface(/* Removed props */) {
         </div>
       </div>
     );
-    // If DesktopLayout should contain everything *except* ChatBot,
-    // then the original return might be okay IF the parent component
-    // renders ChatBot separately. Let's assume side-by-side for now.
   }
 }
