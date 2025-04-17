@@ -1,5 +1,4 @@
 import { useChatBot } from "@/app/hooks/useChatBot";
-// Replace Input with Textarea
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
@@ -108,7 +107,10 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
             disabled={isLoading}
             rows={1} // Start with 1 row, allow expansion if needed via CSS
             // Apply styling for wrapping, appearance, and prevent manual resize
-            className="bg-gray-900 border-gray-700 text-white text-xs sm:text-sm flex-1 resize-none overflow-hidden whitespace-pre-wrap break-words"
+            // Use text-base (16px) on mobile to prevent auto-zoom, sm:text-sm for larger screens
+            // Removed overflow-hidden to potentially improve wrapping behavior
+            // Added min-w-0 to help flex item shrink and wrap long content
+            className="bg-gray-900 border-gray-700 text-white text-base sm:text-sm flex-1 resize-none whitespace-pre-wrap break-words min-w-0"
           />
           <Button
             onClick={handleSendMessage}
