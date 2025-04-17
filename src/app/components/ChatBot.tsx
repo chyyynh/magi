@@ -56,7 +56,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 {message.isLoading && (
                   <Loader2 className="animate-spin h-4 w-4" />
                 )}
-                <p className="text-sm">{message.text}</p>
+                {/* Smaller text on mobile */}
+                <p className="text-xs sm:text-sm">{message.text}</p>
               </div>
               {(message.buttons ?? []).length > 0 && (
                 <div className="mt-2 flex gap-2">
@@ -68,7 +69,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                           handleVote();
                         }
                       }}
-                      className="text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
+                      // Smaller text on mobile
+                      className="text-[10px] sm:text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
                     >
                       {button.text}
                     </button>
@@ -76,7 +78,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 </div>
               )}
             </div>
-            <span className="text-xs text-gray-500 mt-1">
+            {/* Smaller text on mobile */}
+            <span className="text-[10px] sm:text-xs text-gray-500 mt-1">
               {formatTime(message.timestamp)}
             </span>
           </div>
@@ -93,7 +96,8 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
             onKeyDown={handleKeyDown}
             placeholder="Enter Snapshot link or ID..."
             disabled={isLoading}
-            className="bg-gray-900 border-gray-700 text-white"
+            // Smaller text on mobile
+            className="bg-gray-900 border-gray-700 text-white text-xs sm:text-sm"
           />
           <Button
             onClick={handleSendMessage}
