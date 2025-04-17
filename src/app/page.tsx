@@ -1,68 +1,33 @@
 "use client";
 
-import ChatBot from "@/app/components/ChatBot";
-import MagiInterface from "@/app/components/magi-ui";
-import PropUI from "@/app/components/PropUI";
-import { useState, useCallback } from "react";
+// Removed unused imports: ChatBot, PropUI, useState, useCallback, Proposal
+import MagiInterface from "@/app/components/magi/magi-ui";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { type Proposal } from "@/app/utils/proposalUtils";
+// Removed Proposal type import as state is managed internally now
 
 export default function Page() {
-  const [proposal, setProposal] = useState<Proposal | null>(null);
-  const [proposalID, setProposalID] = useState<string | null>(null);
-  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
-  const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
+  // State related to proposal is now managed within MagiInterface
+  // const [proposal, setProposal] = useState<Proposal | null>(null);
+  // const [proposalID, setProposalID] = useState<string | null>(null); // Not needed
+  // const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
+  // const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
 
-  const handleProposalLoaded = useCallback(
-    (
-      proposal: Proposal | null,
-      geminiDecisionLoading: boolean,
-      geminiDecision: string | null
-    ) => {
-      setProposal(proposal);
-      setProposalID(proposalID);
-      setGeminiDecisionLoading(geminiDecisionLoading);
-      setGeminiDecision(geminiDecision);
-    },
-    [setProposal, setProposalID, proposalID]
-  );
+  // Callback is now handled internally by MagiInterface
+  // const handleProposalLoaded = useCallback(...)
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden  bg-black">
-      <div className="p-4 border-b border-[#FF6600]/50 flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-[#FF6600]">MAGI TERMINAL</h2>
+    <div className="flex flex-col h-dvh overflow-hidden bg-black">
+      {/* Header remains the same */}
+      <div className="flex p-4 border-b border-[#FF6600]/50 justify-between items-center">
+        <h2 className="text-lg sm:text-3xl font-bold text-[#FF6600]">
+          MAGI TERMINAL
+        </h2>
         <ConnectButton />
       </div>
-      <div className="flex flex-col sm:flex-row overflow-hidden flex-grow">
-        <div className="w-1/5">
-          <PropUI
-            content={proposal?.body || ""}
-            choices={proposal?.choices || []}
-          />
-        </div>
-        <div className="flex flex-col w-3/5">
-          <MagiInterface
-            proposalID={proposalID!}
-            title={proposal?.title || ""}
-            geminiDecisionLoading={geminiDecisionLoading}
-            geminiDecision={geminiDecision}
-          />
-        </div>
-        <div className="w-1/5">
-          <ChatBot
-            onProposalLoaded={(
-              proposal,
-              geminiDecisionLoading,
-              geminiDecision
-            ) =>
-              handleProposalLoaded(
-                proposal,
-                geminiDecisionLoading,
-                geminiDecision
-              )
-            }
-          />
-        </div>
+      {/* Main content area now only renders MagiInterface */}
+      {/* MagiInterface handles its internal layout (Desktop vs Mobile) */}
+      <div className="flex-grow overflow-hidden">
+        <MagiInterface />
       </div>
     </div>
   );

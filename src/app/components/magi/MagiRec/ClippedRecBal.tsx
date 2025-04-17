@@ -1,26 +1,31 @@
 import type React from "react";
+import useResponsiveSize from "../../../hooks/useResponsiveSize"; // Import the hook
+
+// Define default dimensions
+const DEFAULT_WIDTH = 250;
+const DEFAULT_HEIGHT = 300;
 
 interface ClippedRectangleProps {
-  width: number;
-  height: number;
+  // width and height are now handled internally
   color: string;
   children?: React.ReactNode;
 }
 
 const ClippedRecBal: React.FC<ClippedRectangleProps> = ({
-  width,
-  height,
   color,
   children,
 }) => {
+  // Get responsive dimensions from the hook
+  const { width, height } = useResponsiveSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+
   const borderColor = "#FF6600";
   const borderWidth = 4;
   const clipPath =
     "polygon(0% 0%, 100% 0%, 100% 80%, 75% 100%, 25% 100%, 0% 80%)";
 
   const outerStyle: React.CSSProperties = {
-    width: `${width}px`,
-    height: `${height}px`,
+    width: `${width}px`, // Use responsive width
+    height: `${height}px`, // Use responsive height
     backgroundColor: borderColor,
     clipPath,
     display: "flex",
@@ -29,8 +34,8 @@ const ClippedRecBal: React.FC<ClippedRectangleProps> = ({
   };
 
   const innerStyle: React.CSSProperties = {
-    width: `${width - borderWidth * 2}px`,
-    height: `${height - borderWidth * 2}px`,
+    width: `${width - borderWidth * 2}px`, // Use responsive width
+    height: `${height - borderWidth * 2}px`, // Use responsive height
     backgroundColor: color,
     clipPath,
     display: "flex",
