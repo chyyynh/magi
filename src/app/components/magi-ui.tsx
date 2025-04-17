@@ -170,8 +170,8 @@ const MobileLayout: React.FC<LayoutProps> = ({
   // const title = proposal?.title;
 
   return (
-    // Use flex-col and h-screen for vertical distribution
-    <div className="flex flex-col h-screen bg-black font-mono text-sm">
+    // Use flex-col and h-dvh for vertical distribution to account for browser UI
+    <div className="flex flex-col h-dvh bg-black font-mono text-sm">
       {/* Magi UI Section (2/5 height) */}
       <div className="h-[40%] overflow-hidden p-4 pt-6 flex flex-col items-center justify-center relative border-b border-[#FF6600]/50">
         {/* Simplified Header */}
