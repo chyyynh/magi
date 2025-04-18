@@ -1,4 +1,4 @@
-import { type LayoutProps, type Proposal } from "@/app/components/magi/types";
+import { type LayoutProps } from "@/app/components/magi/types";
 import ClippedRecCas from "./MagiRec/ClippedRecCas";
 import ClippedRecMel from "./MagiRec/ClippedRecMel";
 import ClippedRecBal from "./MagiRec/ClippedRecBal";

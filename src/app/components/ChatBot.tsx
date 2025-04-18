@@ -21,6 +21,7 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
     messagesEndRef,
     handleSendMessage,
     handleVote,
+    handleSendExampleProposal, // Destructure the new handler
   } = useChatBot((proposal, geminiLoading, geminiDecision) => {
     onProposalLoaded(proposal, geminiLoading, geminiDecision);
   });
@@ -66,13 +67,17 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 </p>
               </div>
               {(message.buttons ?? []).length > 0 && (
-                <div className="mt-2 flex gap-2">
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {" "}
+                  {/* Added flex-wrap */}
                   {(message.buttons ?? []).map((button) => (
                     <button
                       key={button.text}
                       onClick={() => {
                         if (button.action === "snapshot vote") {
                           handleVote();
+                        } else if (button.action === "send_example_proposal") {
+                          handleSendExampleProposal(button.data); // Call the new handler with the URL
                         }
                       }}
                       // Smaller text on mobile

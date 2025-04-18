@@ -40,7 +40,6 @@ export default function MagiInterface() {
     setGeminiDecision(decision);
   };
 
-  // Effects remain the same
   useEffect(() => {
     const finalColor =
       geminiDecision === "For"

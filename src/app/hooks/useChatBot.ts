@@ -6,6 +6,14 @@ import { Web3Provider } from "@ethersproject/providers";
 import snapshot from "@snapshot-labs/snapshot.js";
 import { useAccount, useWalletClient } from "wagmi";
 
+// Define a clearer type for buttons
+export interface MessageButton {
+  text: string;
+  action: "snapshot vote" | "send_example_proposal"; // Allowed actions
+  data: string; // URL for example, decision for vote
+  reason?: string; // Optional reason
+}
+
 export interface Message {
   id: string;
   text: string;
@@ -13,12 +21,7 @@ export interface Message {
   isAIResult?: boolean;
   timestamp: Date;
   isLoading?: boolean;
-  buttons?: {
-    text: string;
-    action: string;
-    reason: string;
-    data: string;
-  }[];
+  buttons?: MessageButton[]; // Use the new type
 }
 
 type MessageAction =
@@ -52,14 +55,22 @@ export function useChatBot(
   const [messages, dispatch] = useReducer(messageReducer, [
     {
       id: "welcome",
-      text: "Welcome to MAGI System. Please enter a Snapshot proposal link or ID.",
+      text: "Welcome to MAGI System. Please enter a Snapshot proposal link or ID. You can also try an example:",
       sender: "system",
       timestamp: new Date(),
+      buttons: [
+        {
+          text: "Try Aave Proposal [ARFC] Launch GHO on Gnosis Chain",
+          action: "send_example_proposal",
+          data: "https://snapshot.box/#/s:aavedao.eth/proposal/0x62996204d8466d603fe8c953176599db02a23f440a682ff15ba2d0ca63dda386",
+        },
+      ],
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
-  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false); // 新增此狀態
+  const [, /* geminiDecisionLoading */ setGeminiDecisionLoading] =
+    useState(false); // 新增此狀態
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -123,18 +134,20 @@ export function useChatBot(
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+  // Core logic for processing a message (refactored from handleSendMessage)
+  const processMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return; // Check the provided text
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: input,
+      text: messageText, // Use the provided text
       sender: "user",
       timestamp: new Date(),
     };
     addMessage(userMessage);
+    setInput(""); // Clear input after adding user message
 
-    if (input.includes("snapshot") || input.startsWith("0x")) {
+    if (messageText.includes("snapshot") || messageText.startsWith("0x")) {
       const loadingMsgId = (Date.now() + 1).toString();
       addMessage({
         id: loadingMsgId,
@@ -144,11 +157,12 @@ export function useChatBot(
         isLoading: true,
       });
 
+      setIsLoading(true); // Set loading state
       setGeminiDecisionLoading(true);
-      onProposalLoaded(null, geminiDecisionLoading, null); // 通知父組件
+      onProposalLoaded(null, true, null); // Notify parent component
 
       try {
-        const result = await getProposal(input);
+        const result = await getProposal(messageText); // Use messageText
         updateMessage(loadingMsgId, (msg) => ({
           ...msg,
           text: result.message,
@@ -158,7 +172,7 @@ export function useChatBot(
         if (result.success && result.data) {
           const proposal = result.data;
           setProposal(proposal);
-          onProposalLoaded(proposal, true, null);
+          onProposalLoaded(proposal, true, null); // Notify parent component
 
           addMessage({
             id: Date.now().toString(),
@@ -170,7 +184,7 @@ export function useChatBot(
           });
 
           const geminiDecisionResult = await getGeminiDecision(proposal);
-          const decision = geminiDecisionResult.decision || null; // 確保是 null 或字串
+          const decision = geminiDecisionResult.decision || null; // Ensure it's null or string
 
           setGeminiDecision(decision);
 
@@ -183,13 +197,17 @@ export function useChatBot(
               {
                 text: "Snapshot Vote",
                 action: "snapshot vote",
-                reason: "geminiDecisionResult.reason",
-                data: geminiDecisionResult.decision,
+                reason: geminiDecisionResult.reason, // Use actual reason
+                data: decision || "", // Use decision or empty string
               },
             ],
           });
-          setGeminiDecisionLoading(false); // 設置 geminiDecisionLoading 為 true
-          onProposalLoaded(proposal, false, geminiDecisionResult.decision); // 通知父組件
+          setGeminiDecisionLoading(false); // Set geminiDecisionLoading to false
+          onProposalLoaded(proposal, false, decision); // Notify parent component
+        } else {
+          // Handle case where getProposal succeeded but returned no data or error message
+          setGeminiDecisionLoading(false);
+          onProposalLoaded(null, false, null);
         }
       } catch (error) {
         console.error("Error fetching proposal:", error);
@@ -198,8 +216,11 @@ export function useChatBot(
           text: "Error fetching proposal. Please check the ID and try again.",
           isLoading: false,
         }));
+        setGeminiDecisionLoading(false); // Ensure loading state is reset on error
+        onProposalLoaded(null, false, null); // Notify parent component on error
       } finally {
-        setIsLoading(false);
+        setIsLoading(false); // Clear loading state
+        // Don't clear input here, already cleared above
       }
     } else {
       addMessage({
@@ -208,8 +229,18 @@ export function useChatBot(
         sender: "system",
         timestamp: new Date(),
       });
+      // Don't clear input here, already cleared above
     }
-    setInput("");
+  };
+
+  const handleSendMessage = async () => {
+    await processMessage(input); // Call the core logic with current input
+  };
+
+  // New function for the button action
+  const handleSendExampleProposal = async (url: string) => {
+    if (isLoading) return; // Don't allow if already processing
+    await processMessage(url); // Call the core logic with the URL
   };
 
   return {
@@ -220,5 +251,6 @@ export function useChatBot(
     messagesEndRef,
     handleSendMessage,
     handleVote,
+    handleSendExampleProposal, // Expose the new function
   };
 }
