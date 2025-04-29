@@ -34,10 +34,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
   return (
     <div className="flex flex-col h-full border-l border-[#FF6600]/50 bg-black text-white font-mono">
       {/* Message display area */}
@@ -89,10 +85,6 @@ export default function ChatBot({ onProposalLoaded }: ChatBotProps) {
                 </div>
               )}
             </div>
-            {/* Smaller text on mobile */}
-            <span className="text-[10px] sm:text-xs text-gray-500 mt-1">
-              {formatTime(message.timestamp)}
-            </span>
           </div>
         ))}
         <div ref={messagesEndRef} />
