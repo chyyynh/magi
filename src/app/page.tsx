@@ -1,7 +1,7 @@
 "use client";
 
 // Removed unused imports: ChatBot, PropUI, useState, useCallback, Proposal
-import MagiInterface from "@/app/components/magi/magi-ui";
+import MagiInterface from "@/components/magi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 // Removed Proposal type import as state is managed internally now
 

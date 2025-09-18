@@ -1,4 +1,4 @@
-import { fetchProposal } from "../api/snapshot";
+import { fetchProposal } from "@/app/api/snapshot";
 
 export interface Proposal {
   id: string;

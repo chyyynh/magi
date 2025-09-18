@@ -1,9 +1,13 @@
-import { type LayoutProps } from "@/app/components/magi/types";
-import ClippedRecCas from "./MagiRec/ClippedRecCas";
-import ClippedRecMel from "./MagiRec/ClippedRecMel";
-import ClippedRecBal from "./MagiRec/ClippedRecBal";
-import PropUI from "../PropUI";
-import ChatBot from "../ChatBot";
+import { type LayoutProps } from "@/types";
+import ClippedRecCas from "../core/ClippedRecCas";
+import ClippedRecMel from "../core/ClippedRecMel";
+import ClippedRecBal from "../core/ClippedRecBal";
+import PropUI from "@/components/common/PropUI";
+import { useChat } from '@ai-sdk/react';
+import { useState } from 'react';
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Send, Loader2 } from "lucide-react";
 
 // --- Desktop Layout Component ---
 // Desktop layout remains largely the same, but receives props differently if needed
@@ -119,10 +123,36 @@ export const MobileLayout: React.FC<LayoutProps> = ({
   bgColorMelchior,
   decisionText,
   notoSansTCClassName,
-  onProposalLoaded, // Use callback for ChatBot
+  // onProposalLoaded - not used in this layout
 }) => {
-  // const proposalID = proposal?.id;
-  // const title = proposal?.title;
+  // Chat functionality using AI SDK
+  const [input, setInput] = useState('');
+  const { messages, sendMessage, status } = useChat();
+
+  const isLoading = status === 'streaming';
+
+  // Handle try example button
+  const handleTryExample = () => {
+    const exampleUrl = 'https://snapshot.box/#/s:aavedao.eth/proposal/0x62996204d8466d603fe8c953176599db02a23f440a682ff15ba2d0ca63dda386';
+    sendMessage(exampleUrl);
+  };
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim() && !isLoading) {
+      sendMessage(input);
+      setInput('');
+    }
+  };
+
+  // Handle keydown for textarea
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
 
   return (
     // Use flex-col and h-dvh for vertical distribution to account for browser UI
@@ -191,9 +221,89 @@ export const MobileLayout: React.FC<LayoutProps> = ({
         <PropUI content={proposal?.body} choices={proposal?.choices} />
       </div>
 
-      {/* ChatBot Section (2/5 height) */}
-      <div className="h-[40%]">
-        <ChatBot onProposalLoaded={onProposalLoaded} />
+      {/* Chat Section (2/5 height) using AI SDK */}
+      <div className="h-[40%] flex flex-col border-l border-[#FF6600]/50 bg-black text-white font-mono">
+        {/* Message display area */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-4 hide-scrollbar">
+          {/* Welcome message when no messages */}
+          {messages.length === 0 && (
+            <div className="flex flex-col items-start">
+              <div className="max-w-[80%] px-3 py-2 rounded-md bg-[#FF6600]/20 border border-[#FF6600]/50">
+                <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
+                  Welcome to MAGI System. Please enter a Snapshot proposal link or ID.
+                </p>
+                <div className="mt-2">
+                  <button
+                    onClick={handleTryExample}
+                    className="text-[10px] sm:text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
+                  >
+                    Try Aave Proposal Example
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Messages */}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex flex-col ${
+                message.role === "user" ? "items-end" : "items-start"
+              }`}
+            >
+              <div
+                className={`max-w-[80%] px-3 py-2 rounded-md ${
+                  message.role === "user"
+                    ? "bg-[#00AAFF]/30 border border-[#00AAFF]/50"
+                    : "bg-[#FF6600]/20 border border-[#FF6600]/50"
+                }`}
+              >
+                <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
+                  {message.content}
+                </p>
+              </div>
+            </div>
+          ))}
+
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex flex-col items-start">
+              <div className="max-w-[80%] px-3 py-2 rounded-md bg-[#FF6600]/20 border border-[#FF6600]/50">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  <p className="text-xs sm:text-sm">MAGI System processing...</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input area */}
+        <div className="flex-none p-4 border-t border-[#FF6600]/50 bg-black">
+          <form onSubmit={handleSubmit} className="flex items-center space-x-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter Snapshot link or ID..."
+              disabled={isLoading}
+              rows={1}
+              className="bg-gray-900 border-gray-700 text-white text-base sm:text-sm flex-1 resize-none whitespace-pre-wrap break-words min-w-0"
+            />
+            <Button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="bg-[#FF6600] hover:bg-[#FF6600]/80 self-end"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send size={18} />
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

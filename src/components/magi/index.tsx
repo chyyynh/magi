@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import useIsMobile from "../../hooks/useIsMobile";
-import PropUI from "../PropUI";
-import ChatBot from "../ChatBot";
-import { type LayoutProps, type Proposal } from "@/app/components/magi/types";
-import { DesktopLayout, MobileLayout } from "./layout";
+import { useEffect, useState, useCallback } from "react";
+import useIsMobile from "@/hooks/useIsMobile";
+import PropUI from "@/components/common/PropUI";
+import { type LayoutProps, type Proposal } from "@/types";
+import { DesktopLayout, MobileLayout } from "./layout/layout";
+import FloatingChatbot from "./chat/FloatingChatbot";
 
 import { Noto_Serif_TC } from "next/font/google";
 
@@ -24,21 +24,24 @@ export default function MagiInterface() {
   const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
 
+  // Callback for ChatBot to update parent state
+  const handleProposalLoaded = useCallback(
+    (
+      loadedProposal: Proposal | null,
+      loading: boolean,
+      decision: string | null
+    ) => {
+      setProposal(loadedProposal);
+      setGeminiDecisionLoading(loading);
+      setGeminiDecision(decision);
+    },
+    []
+  );
+
   const [, /*blink*/ setBlinking] = useState(false);
   const [bgColorBalthasar, setBgColorBalthasar] = useState("#FF6600");
   const [bgColorCasper, setBgColorCasper] = useState("#FF6600");
   const [bgColorMelchior, setBgColorMelchior] = useState("#FF6600");
-
-  // Callback for ChatBot to update parent state
-  const handleProposalLoaded = (
-    loadedProposal: Proposal | null,
-    loading: boolean,
-    decision: string | null
-  ) => {
-    setProposal(loadedProposal);
-    setGeminiDecisionLoading(loading);
-    setGeminiDecision(decision);
-  };
 
   useEffect(() => {
     const finalColor =
@@ -117,16 +120,15 @@ export default function MagiInterface() {
     return <MobileLayout {...layoutProps} />;
   } else {
     return (
-      <div className="flex h-full">
-        <div className="w-1/5">
+      <div className="flex h-full relative">
+        <div className="w-1/4">
           <PropUI content={proposal?.body} choices={proposal?.choices} />
         </div>
-        <div className="w-3/5">
+        <div className="flex-1">
           <DesktopLayout {...layoutProps} />
         </div>
-        <div className="w-1/5">
-          <ChatBot onProposalLoaded={handleProposalLoaded} />
-        </div>
+
+        <FloatingChatbot />
       </div>
     );
   }

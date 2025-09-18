@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 
-import WagmiWrapper from "./components/wagmiWrapper";
+import WagmiWrapper from "@/components/common/wagmiWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
