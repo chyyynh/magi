@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.14",
     "@ai-sdk/openai": "^2.0.32",
     "@ai-sdk/react": "^2.0.45",
     "@assistant-ui/react": "^0.11.10",
@@ -54,6 +55,7 @@
     "@types/node": "^20.17.28",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9.23.0",
     "eslint-config-next": "15.2.1",
     "tailwindcss": "^4.0.17",

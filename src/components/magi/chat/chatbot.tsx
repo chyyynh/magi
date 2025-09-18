@@ -33,6 +33,7 @@ import {
 } from '@/components/ai-elements/actions';
 import { Fragment, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
 import { GlobeIcon, RefreshCcwIcon, CopyIcon } from 'lucide-react';
 import {
@@ -63,7 +64,13 @@ export default function Chatbot() {
   const [input, setInput] = useState('');
   const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
-  const { messages, sendMessage, status, setMessages } = useChat();
+  const { messages, sendMessage, status, setMessages } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+  });
+
+  console.log('Chat state:', { messages, status });
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -94,92 +101,36 @@ export default function Chatbot() {
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-foreground">AI Chat</h3>
         </div>
-        <Conversation className="flex-1">
-          <ConversationContent>
-            {messages.map((message) => (
-              <div key={message.id}>
-                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
-                  <Sources>
-                    <SourcesTrigger
-                      count={
-                        message.parts.filter(
-                          (part) => part.type === 'source-url',
-                        ).length
-                      }
-                    />
-                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
-                      <SourcesContent key={`${message.id}-${i}`}>
-                        <Source
-                          key={`${message.id}-${i}`}
-                          href={part.url}
-                          title={part.url}
-                        />
-                      </SourcesContent>
-                    ))}
-                  </Sources>
-                )}
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case 'text':
-                      return (
-                        <Fragment key={`${message.id}-${i}`}>
-                          <Message from={message.role}>
-                            <MessageContent>
-                              <Response>
-                                {part.text}
-                              </Response>
-                            </MessageContent>
-                          </Message>
-                          {message.role === 'assistant' && i === messages.length - 1 && (
-                            <Actions className="mt-2">
-                              <Action
-                                onClick={() => {
-                                  const lastUserMessage = messages.findLast(m => m.role === 'user');
-                                  if (lastUserMessage) {
-                                    setMessages(messages.slice(0, messages.indexOf(lastUserMessage) + 1));
-                                    const textPart = lastUserMessage.parts.find(p => p.type === 'text');
-                                    if (textPart) {
-                                      sendMessage({ text: textPart.text });
-                                    }
-                                  }
-                                }}
-                                label="Retry"
-                              >
-                                <RefreshCcwIcon className="size-3" />
-                              </Action>
-                              <Action
-                                onClick={() =>
-                                  navigator.clipboard.writeText(part.text)
-                                }
-                                label="Copy"
-                              >
-                                <CopyIcon className="size-3" />
-                              </Action>
-                            </Actions>
-                          )}
-                        </Fragment>
-                      );
-                    case 'reasoning':
-                      return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text}</ReasoningContent>
-                        </Reasoning>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-muted-foreground text-sm">Start a conversation...</div>
+          ) : (
+            messages.map((message) => (
+              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground'
+                }`}>
+                  {message.parts?.map((part, i) =>
+                    part.type === 'text' ? part.text : null
+                  ).join('') || 'No content'}
+                </div>
               </div>
-            ))}
-            {status === 'submitted' && <Loader />}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+            ))
+          )}
+          {status === 'streaming' && (
+            <div className="flex justify-start">
+              <div className="bg-muted text-foreground rounded-lg px-4 py-2">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-pulse">●</div>
+                  <div className="animate-pulse delay-100">●</div>
+                  <div className="animate-pulse delay-200">●</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
           <PromptInputBody>

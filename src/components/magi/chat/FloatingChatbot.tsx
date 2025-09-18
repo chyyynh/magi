@@ -11,7 +11,7 @@ export default function FloatingChatbot() {
         <div className="absolute left-0 top-0 w-4 h-full bg-transparent"></div>
 
         {/* Chatbot container */}
-        <div className="h-full bg-gray-800 rounded-2xl border border-border/50 shadow-2xl">
+        <div className="h-full bg-black rounded-2xl border border-orange-400 shadow-none">
           <Chatbot />
         </div>
       </div>
