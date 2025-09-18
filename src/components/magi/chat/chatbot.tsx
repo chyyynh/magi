@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
-} from '@/components/ai-elements/conversation';
-import { Message, MessageContent } from '@/components/ai-elements/message';
+} from "@/components/ai-elements/conversation";
+import { Message, MessageContent } from "@/components/ai-elements/message";
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -26,51 +26,48 @@ import {
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
-} from '@/components/ai-elements/prompt-input';
-import {
-  Actions,
-  Action
-} from '@/components/ai-elements/actions';
-import { Fragment, useState } from 'react';
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { Response } from '@/components/ai-elements/response';
-import { GlobeIcon, RefreshCcwIcon, CopyIcon } from 'lucide-react';
+} from "@/components/ai-elements/prompt-input";
+import { Actions, Action } from "@/components/ai-elements/actions";
+import { Fragment, useState } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { Response } from "@/components/ai-elements/response";
+import { GlobeIcon, RefreshCcwIcon, CopyIcon } from "lucide-react";
 import {
   Source,
   Sources,
   SourcesContent,
   SourcesTrigger,
-} from '@/components/ai-elements/sources';
+} from "@/components/ai-elements/sources";
 import {
   Reasoning,
   ReasoningContent,
   ReasoningTrigger,
-} from '@/components/ai-elements/reasoning';
-import { Loader } from '@/components/ai-elements/loader';
+} from "@/components/ai-elements/reasoning";
+import { Loader } from "@/components/ai-elements/loader";
 
 const models = [
   {
-    name: 'GPT 4o',
-    value: 'openai/gpt-4o',
+    name: "GPT 4o",
+    value: "openai/gpt-4o",
   },
   {
-    name: 'Deepseek R1',
-    value: 'deepseek/deepseek-r1',
+    name: "Deepseek R1",
+    value: "deepseek/deepseek-r1",
   },
 ];
 
 export default function Chatbot() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
-      api: '/api/chat',
+      api: "/api/chat",
     }),
   });
 
-  console.log('Chat state:', { messages, status });
+  console.log("Chat state:", { messages, status });
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -81,45 +78,56 @@ export default function Chatbot() {
     }
 
     sendMessage(
-      { 
-        text: message.text || 'Sent with attachments',
-        files: message.files 
+      {
+        text: message.text || "Sent with attachments",
+        files: message.files,
       },
       {
         body: {
           model: model,
           webSearch: webSearch,
         },
-      },
+      }
     );
-    setInput('');
+    setInput("");
   };
 
   return (
     <div className="h-full">
       <div className="flex flex-col h-full p-4">
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-foreground">AI Chat</h3>
+          <h3 className="text-lg font-semibold text-white">AI Chat</h3>
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
-            <div className="text-muted-foreground text-sm">Start a conversation...</div>
+            <div className=" text-sm text-white">
+              Ask anything about the proposal...
+            </div>
           ) : (
             messages.map((message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                  message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground'
-                }`}>
-                  {message.parts?.map((part, i) =>
-                    part.type === 'text' ? part.text : null
-                  ).join('') || 'No content'}
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  }`}
+                >
+                  {message.parts
+                    ?.map((part, i) =>
+                      part.type === "text" ? part.text : null
+                    )
+                    .join("") || "No content"}
                 </div>
               </div>
             ))
           )}
-          {status === 'streaming' && (
+          {status === "streaming" && (
             <div className="flex justify-start">
               <div className="bg-muted text-foreground rounded-lg px-4 py-2">
                 <div className="flex items-center space-x-2">
@@ -132,7 +140,12 @@ export default function Chatbot() {
           )}
         </div>
 
-        <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
+        <PromptInput
+          onSubmit={handleSubmit}
+          className="mt-4"
+          globalDrop
+          multiple
+        >
           <PromptInputBody>
             <PromptInputAttachments>
               {(attachment) => <PromptInputAttachment data={attachment} />}
@@ -151,7 +164,7 @@ export default function Chatbot() {
                 </PromptInputActionMenuContent>
               </PromptInputActionMenu>
               <PromptInputButton
-                variant={webSearch ? 'default' : 'ghost'}
+                variant={webSearch ? "default" : "ghost"}
                 onClick={() => setWebSearch(!webSearch)}
               >
                 <GlobeIcon size={16} />
@@ -168,7 +181,10 @@ export default function Chatbot() {
                 </PromptInputModelSelectTrigger>
                 <PromptInputModelSelectContent>
                   {models.map((model) => (
-                    <PromptInputModelSelectItem key={model.value} value={model.value}>
+                    <PromptInputModelSelectItem
+                      key={model.value}
+                      value={model.value}
+                    >
                       {model.name}
                     </PromptInputModelSelectItem>
                   ))}
