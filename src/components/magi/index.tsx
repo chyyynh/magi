@@ -23,6 +23,7 @@ export default function MagiInterface() {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
   const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
+  const [proposalContext, setProposalContext] = useState<string | null>(null);
 
   // Callback for ChatBot to update parent state
   const handleProposalLoaded = useCallback(
@@ -34,6 +35,18 @@ export default function MagiInterface() {
       setProposal(loadedProposal);
       setGeminiDecisionLoading(loading);
       setGeminiDecision(decision);
+    },
+    []
+  );
+
+  // Callback for updating proposal context for chatbot
+  const handleProposalContextUpdate = useCallback(
+    (context: string | null) => {
+      console.log('MagiInterface received context update:', {
+        hasContext: !!context,
+        contextLength: context?.length || 0
+      });
+      setProposalContext(context);
     },
     []
   );
@@ -115,6 +128,8 @@ export default function MagiInterface() {
     decisionText,
     notoSansTCClassName: notoSansTC.className,
     onProposalLoaded: handleProposalLoaded, // Pass callback
+    onProposalContextUpdate: handleProposalContextUpdate, // Pass context callback
+    proposalContext, // Pass proposal context for chatbot
   };
   if (isMobile) {
     return <MobileLayout {...layoutProps} />;
@@ -126,13 +141,14 @@ export default function MagiInterface() {
             content={proposal?.body}
             choices={proposal?.choices}
             onProposalLoaded={handleProposalLoaded}
+            onProposalContextUpdate={handleProposalContextUpdate}
           />
         </div>
         <div className="flex-1">
           <DesktopLayout {...layoutProps} />
         </div>
 
-        <FloatingChatbot />
+        <FloatingChatbot proposalContext={proposalContext} />
       </div>
     );
   }

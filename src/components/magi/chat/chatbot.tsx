@@ -57,7 +57,11 @@ const models = [
   },
 ];
 
-export default function Chatbot() {
+interface ChatbotProps {
+  proposalContext?: string | null;
+}
+
+export default function Chatbot({ proposalContext }: ChatbotProps) {
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
@@ -77,6 +81,11 @@ export default function Chatbot() {
       return;
     }
 
+    console.log('FloatingChatbot sending message with context:', {
+      hasContext: !!proposalContext,
+      contextPreview: proposalContext ? proposalContext.substring(0, 100) + '...' : 'None'
+    });
+
     sendMessage(
       {
         text: message.text || "Sent with attachments",
@@ -86,6 +95,7 @@ export default function Chatbot() {
         body: {
           model: model,
           webSearch: webSearch,
+          proposalContext: proposalContext,
         },
       }
     );
@@ -118,11 +128,21 @@ export default function Chatbot() {
                       : "bg-muted text-foreground"
                   }`}
                 >
-                  {message.parts
-                    ?.map((part, i) =>
-                      part.type === "text" ? part.text : null
-                    )
-                    .join("") || "No content"}
+                  {message.role === "user" ? (
+                    message.parts
+                      ?.map((part) =>
+                        part.type === "text" ? part.text : null
+                      )
+                      .join("") || "No content"
+                  ) : (
+                    <Response className="prose prose-sm max-w-none prose-invert">
+                      {message.parts
+                        ?.map((part) =>
+                          part.type === "text" ? part.text : null
+                        )
+                        .join("") || "No content"}
+                    </Response>
+                  )}
                 </div>
               </div>
             ))

@@ -20,6 +20,7 @@ interface PropUIProps {
     geminiDecisionLoading: boolean,
     geminiDecision: string | null
   ) => void;
+  onProposalContextUpdate?: (proposalContext: string | null) => void;
 }
 
 const PROPOSALS: ProposalButton[] = [
@@ -45,7 +46,7 @@ const PROPOSALS: ProposalButton[] = [
   }
 ];
 
-export default function PropUI({ content, choices, onProposalLoaded }: PropUIProps) {
+export default function PropUI({ content, choices, onProposalLoaded, onProposalContextUpdate }: PropUIProps) {
   const [selectedProposal, setSelectedProposal] = useState<ProposalButton | null>(null);
   const [proposalData, setProposalData] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,29 @@ export default function PropUI({ content, choices, onProposalLoaded }: PropUIPro
         // Notify parent with proposal data
         onProposalLoaded?.(data, true, null);
 
+        // Create context for chatbot
+        const proposalContext = `
+CURRENT PROPOSAL CONTEXT:
+Title: ${data.title}
+Author: ${data.author}
+Space: ${data.space.name}
+State: ${data.state}
+Choices: ${data.choices.join(', ')}
+
+Proposal Body:
+${data.body}
+
+Instructions: You are now analyzing the above governance proposal. Please answer any questions about this proposal based on the provided information. Be helpful and provide detailed analysis when asked.
+        `.trim();
+
+        // Update chatbot context
+        console.log('PropUI updating context:', {
+          hasCallback: !!onProposalContextUpdate,
+          contextLength: proposalContext.length,
+          contextPreview: proposalContext.substring(0, 100) + '...'
+        });
+        onProposalContextUpdate?.(proposalContext);
+
         // Get Gemini decision
         const geminiResult = await getGeminiDecision(data);
         setGeminiDecision(geminiResult.decision);
@@ -79,6 +103,7 @@ export default function PropUI({ content, choices, onProposalLoaded }: PropUIPro
       console.error('Failed to fetch proposal:', error);
       setProposalData(null);
       onProposalLoaded?.(null, false, null);
+      onProposalContextUpdate?.(null); // Clear context on error
     } finally {
       setLoading(false);
       setGeminiDecisionLoading(false);

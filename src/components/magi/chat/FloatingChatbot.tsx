@@ -2,7 +2,11 @@
 
 import Chatbot from "./chatbot";
 
-export default function FloatingChatbot() {
+interface FloatingChatbotProps {
+  proposalContext?: string | null;
+}
+
+export default function FloatingChatbot({ proposalContext }: FloatingChatbotProps) {
   return (
     <>
       {/* Floating Chatbot */}
@@ -12,7 +16,7 @@ export default function FloatingChatbot() {
 
         {/* Chatbot container */}
         <div className="h-full bg-black rounded-2xl border border-orange-400 shadow-none">
-          <Chatbot />
+          <Chatbot proposalContext={proposalContext} />
         </div>
       </div>
 

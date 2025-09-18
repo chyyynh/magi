@@ -12,6 +12,8 @@ export interface LayoutProps {
     geminiLoading: boolean,
     geminiDecision: string | null
   ) => void;
+  onProposalContextUpdate?: (context: string | null) => void;
+  proposalContext?: string | null;
 }
 
 export interface Proposal {

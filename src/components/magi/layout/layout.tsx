@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Send, Loader2 } from "lucide-react";
+import { Response } from "@/components/ai-elements/response";
 
 // --- Desktop Layout Component ---
 // Desktop layout remains largely the same, but receives props differently if needed
@@ -124,24 +125,40 @@ export const MobileLayout: React.FC<LayoutProps> = ({
   decisionText,
   notoSansTCClassName,
   onProposalLoaded, // Now we'll use it
+  onProposalContextUpdate, // Context update callback
+  proposalContext, // Proposal context for chatbot
 }) => {
   // Chat functionality using AI SDK
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    api: '/api/chat',
+  });
 
   const isLoading = status === 'streaming';
 
   // Handle try example button
   const handleTryExample = () => {
     const exampleUrl = 'https://snapshot.box/#/s:aavedao.eth/proposal/0x62996204d8466d603fe8c953176599db02a23f440a682ff15ba2d0ca63dda386';
-    sendMessage(exampleUrl);
+    sendMessage(exampleUrl, {
+      body: {
+        proposalContext,
+      },
+    });
   };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      sendMessage(input);
+      console.log('MobileLayout sending message with context:', {
+        hasContext: !!proposalContext,
+        contextPreview: proposalContext ? proposalContext.substring(0, 100) + '...' : 'None'
+      });
+      sendMessage(input, {
+        body: {
+          proposalContext,
+        },
+      });
       setInput('');
     }
   };
@@ -222,6 +239,7 @@ export const MobileLayout: React.FC<LayoutProps> = ({
           content={proposal?.body}
           choices={proposal?.choices}
           onProposalLoaded={onProposalLoaded}
+          onProposalContextUpdate={onProposalContextUpdate}
         />
       </div>
 
@@ -234,16 +252,21 @@ export const MobileLayout: React.FC<LayoutProps> = ({
             <div className="flex flex-col items-start">
               <div className="max-w-[80%] px-3 py-2 rounded-md bg-[#FF6600]/20 border border-[#FF6600]/50">
                 <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
-                  Welcome to MAGI System. Please enter a Snapshot proposal link or ID.
+                  {proposalContext
+                    ? "Proposal loaded! Ask me anything about this governance proposal."
+                    : "Welcome to MAGI System. Select a proposal from the left panel to start analysis, or ask general questions."
+                  }
                 </p>
-                <div className="mt-2">
-                  <button
-                    onClick={handleTryExample}
-                    className="text-[10px] sm:text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
-                  >
-                    Try Aave Proposal Example
-                  </button>
-                </div>
+                {!proposalContext && (
+                  <div className="mt-2">
+                    <button
+                      onClick={handleTryExample}
+                      className="text-[10px] sm:text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
+                    >
+                      Try Aave Proposal Example
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -263,9 +286,15 @@ export const MobileLayout: React.FC<LayoutProps> = ({
                     : "bg-[#FF6600]/20 border border-[#FF6600]/50"
                 }`}
               >
-                <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
-                  {message.content}
-                </p>
+                {message.role === "user" ? (
+                  <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
+                    {message.content}
+                  </p>
+                ) : (
+                  <Response className="prose prose-xs prose-invert max-w-none">
+                    {message.content}
+                  </Response>
+                )}
               </div>
             </div>
           ))}
@@ -290,7 +319,7 @@ export const MobileLayout: React.FC<LayoutProps> = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Enter Snapshot link or ID..."
+              placeholder={proposalContext ? "Ask about this proposal..." : "Enter Snapshot link or ID..."}
               disabled={isLoading}
               rows={1}
               className="bg-gray-900 border-gray-700 text-white text-base sm:text-sm flex-1 resize-none whitespace-pre-wrap break-words min-w-0"
