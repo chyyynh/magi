@@ -1,7 +1,6 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
-import { useState } from "react";
 
 interface PropUIProps {
   content?: string;
@@ -9,7 +8,6 @@ interface PropUIProps {
 }
 
 export default function PropUI({ content, choices }: PropUIProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   return (
     <div className="flex flex-col h-full border-r border-[#FF6600]/50 bg-black text-white font-[family-name:var(--font-fraunces)] p-4 overflow-y-auto hide-scrollbar">
       <div className="mt-2 text-sm flex-1 flex flex-col min-h-0">
