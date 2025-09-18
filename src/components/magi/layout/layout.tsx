@@ -123,7 +123,7 @@ export const MobileLayout: React.FC<LayoutProps> = ({
   bgColorMelchior,
   decisionText,
   notoSansTCClassName,
-  // onProposalLoaded - not used in this layout
+  onProposalLoaded, // Now we'll use it
 }) => {
   // Chat functionality using AI SDK
   const [input, setInput] = useState('');
@@ -218,7 +218,11 @@ export const MobileLayout: React.FC<LayoutProps> = ({
 
       {/* PropUI Section (1/5 height) */}
       <div className="h-[20%] overflow-hidden border-b border-[#FF6600]/50">
-        <PropUI content={proposal?.body} choices={proposal?.choices} />
+        <PropUI
+          content={proposal?.body}
+          choices={proposal?.choices}
+          onProposalLoaded={onProposalLoaded}
+        />
       </div>
 
       {/* Chat Section (2/5 height) using AI SDK */}

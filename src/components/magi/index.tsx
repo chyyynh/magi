@@ -122,7 +122,11 @@ export default function MagiInterface() {
     return (
       <div className="flex h-full relative">
         <div className="w-1/4">
-          <PropUI content={proposal?.body} choices={proposal?.choices} />
+          <PropUI
+            content={proposal?.body}
+            choices={proposal?.choices}
+            onProposalLoaded={handleProposalLoaded}
+          />
         </div>
         <div className="flex-1">
           <DesktopLayout {...layoutProps} />

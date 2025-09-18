@@ -3,37 +3,26 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { fetchProposal } from "@/app/api/snapshot";
+import { getGeminiDecision } from "@/lib/api/aiService";
+import type { Proposal } from "@/lib/api/proposalUtils";
 
-interface Proposal {
+interface ProposalButton {
   id: string;
   title: string;
   url: string;
 }
 
-interface ProposalData {
-  id: string;
-  title: string;
-  body: string;
-  choices: string[];
-  start: number;
-  end: number;
-  state: string;
-  author: string;
-  space: {
-    id: string;
-    name: string;
-  };
-  scores_total: number;
-  scores: number[];
-  votes: number;
-}
-
 interface PropUIProps {
   content?: string;
   choices?: string[];
+  onProposalLoaded?: (
+    proposal: Proposal | null,
+    geminiDecisionLoading: boolean,
+    geminiDecision: string | null
+  ) => void;
 }
 
-const PROPOSALS: Proposal[] = [
+const PROPOSALS: ProposalButton[] = [
   {
     id: "0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
     title: "Morpho Proposal #1",
@@ -56,22 +45,43 @@ const PROPOSALS: Proposal[] = [
   }
 ];
 
-export default function PropUI({ content, choices }: PropUIProps) {
-  const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
-  const [proposalData, setProposalData] = useState<ProposalData | null>(null);
+export default function PropUI({ content, choices, onProposalLoaded }: PropUIProps) {
+  const [selectedProposal, setSelectedProposal] = useState<ProposalButton | null>(null);
+  const [proposalData, setProposalData] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(false);
+  const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
+  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
 
-  const handleProposalSelect = async (proposal: Proposal) => {
+  const handleProposalSelect = async (proposal: ProposalButton) => {
     setSelectedProposal(proposal);
     setLoading(true);
+    setGeminiDecisionLoading(true);
+
+    // Notify parent that loading started
+    onProposalLoaded?.(null, true, null);
+
     try {
       const data = await fetchProposal(proposal.id);
       setProposalData(data);
+
+      if (data) {
+        // Notify parent with proposal data
+        onProposalLoaded?.(data, true, null);
+
+        // Get Gemini decision
+        const geminiResult = await getGeminiDecision(data);
+        setGeminiDecision(geminiResult.decision);
+
+        // Notify parent with final result
+        onProposalLoaded?.(data, false, geminiResult.decision);
+      }
     } catch (error) {
       console.error('Failed to fetch proposal:', error);
       setProposalData(null);
+      onProposalLoaded?.(null, false, null);
     } finally {
       setLoading(false);
+      setGeminiDecisionLoading(false);
     }
   };
   if (!selectedProposal) {
@@ -170,10 +180,16 @@ export default function PropUI({ content, choices }: PropUIProps) {
             (Array.isArray(choices) && choices.length > 0)) ? (
             <div className="space-y-2">
               {(proposalData?.choices || choices || []).map((choice, index) => {
+                const isRecommended = geminiDecision && choice === geminiDecision;
+
                 // Define colors for common voting choices
                 const getChoiceStyle = (choice: string) => {
                   const lowerChoice = choice.toLowerCase();
-                  if (lowerChoice.includes('for') || lowerChoice.includes('yes') || lowerChoice.includes('支持')) {
+
+                  if (isRecommended) {
+                    // MAGI recommended choice - special highlight
+                    return "bg-[#FF6600]/20 border-[#FF6600] text-[#FF6600] shadow-lg shadow-[#FF6600]/25";
+                  } else if (lowerChoice.includes('for') || lowerChoice.includes('yes') || lowerChoice.includes('支持')) {
                     return "bg-emerald-500/10 border-emerald-400/30 text-emerald-300";
                   } else if (lowerChoice.includes('against') || lowerChoice.includes('no') || lowerChoice.includes('反對')) {
                     return "bg-red-500/10 border-red-400/30 text-red-300";
@@ -214,11 +230,22 @@ export default function PropUI({ content, choices }: PropUIProps) {
                   <div
                     key={index}
                     onClick={() => handleVote(choice)}
-                    className={`${getChoiceStyle(choice)} border px-3 py-2 rounded-lg text-xs transition-all duration-200 cursor-pointer transform hover:scale-[1.01] hover:shadow-sm backdrop-blur-sm`}
+                    className={`${getChoiceStyle(choice)} border px-3 py-2 rounded-lg text-xs transition-all duration-200 cursor-pointer transform hover:scale-[1.01] hover:shadow-sm backdrop-blur-sm ${
+                      isRecommended ? 'ring-1 ring-[#FF6600]/50' : ''
+                    }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{choice}</span>
-                      <div className="w-1.5 h-1.5 rounded-full bg-current opacity-60"></div>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{choice}</span>
+                        {isRecommended && (
+                          <span className="text-[8px] mt-0.5 font-bold bg-[#FF6600] text-black px-1 py-0.5 rounded-sm">
+                            MAGI RECOMMENDED
+                          </span>
+                        )}
+                      </div>
+                      <div className={`w-1.5 h-1.5 rounded-full bg-current ${
+                        isRecommended ? 'opacity-100 animate-pulse' : 'opacity-60'
+                      }`}></div>
                     </div>
                   </div>
                 );
