@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "rm -rf .next && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -33,10 +33,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
+    "encoding": "^0.1.13",
     "frames.js": "^0.21.3",
+    "lokijs": "1.x",
     "lucide-react": "^0.479.0",
     "nanoid": "^5.1.5",
     "next": "^15.2.4",
+    "pino-pretty": "^13.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
@@ -47,7 +50,8 @@
     "tokenlens": "^1.2.1",
     "use-stick-to-bottom": "^1.1.1",
     "viem": "^2.24.1",
-    "wagmi": "^2.14.15"
+    "wagmi": "^2.14.15",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",

@@ -1,4 +1,4 @@
-// 導出所有工具函數和 API
-export * from './api/proposalUtils';
-export * from './api/aiService';
+// Export all utility functions and services
+export * from './services/ai';
+export * from './utils/proposal';
 export * from './utils';
