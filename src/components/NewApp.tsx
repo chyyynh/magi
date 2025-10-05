@@ -13,7 +13,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 // Hook for detecting mobile - simple and clean
 function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -25,7 +25,7 @@ function useIsMobile() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  return isMobile;
+  return isMobile ?? false;
 }
 
 export default function NewApp() {

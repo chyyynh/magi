@@ -22,7 +22,8 @@ export default function ProposalPage() {
       // Automatically load the proposal when the page loads
       loadProposal(proposalId);
     }
-  }, [proposalId, loadProposal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proposalId]);
 
   // Show error for invalid proposal IDs
   if (proposalId && !isValidProposalId(proposalId)) {
