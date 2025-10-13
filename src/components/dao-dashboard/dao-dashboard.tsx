@@ -1,0 +1,891 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Card } from "@/components/dao-dashboard/ui/card"
+import { Badge } from "@/components/dao-dashboard/ui/badge"
+import { Button } from "@/components/dao-dashboard/ui/button"
+import { DimensionChart } from "@/components/dao-dashboard/dimension-chart"
+import {
+  Activity,
+  Users,
+  Vote,
+  Shield,
+  TrendingUp,
+  Zap,
+  AlertTriangle,
+  Database,
+  DollarSign,
+  Circle,
+  FileText,
+  ChevronRight,
+} from "lucide-react"
+
+// DAO Proposals mapping
+interface DAOProposal {
+  id: string;
+  title: string;
+  url: string;
+}
+
+const daoProposals: Record<string, DAOProposal[]> = {
+  morpho: [
+    {
+      id: "0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
+      title: "Morpho Proposal #1",
+      url: "/0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359"
+    },
+    {
+      id: "0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106",
+      title: "Morpho Proposal #2",
+      url: "/0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106"
+    },
+    {
+      id: "0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab",
+      title: "Morpho Proposal #3",
+      url: "/0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab"
+    }
+  ],
+  uniswap: [],
+  arbitrum: [],
+  optimism: [],
+  nouns: []
+}
+
+const daoDatabase = {
+  uniswap: {
+    name: "Uniswap DAO",
+    stage: 1,
+    overallScore: 78,
+    dimensions: {
+      governance: {
+        score: 82,
+        votingRate: 42.5,
+        nakamotoCoefficient: 28,
+        giniCoefficient: 0.65,
+        whaleConcentration: 18.5,
+        status: "healthy",
+      },
+      treasury: {
+        score: 75,
+        size: 2.8e9,
+        burnRate: 12.5,
+        runway: 28,
+        diversification: 62,
+        status: "healthy",
+      },
+      decentralization: {
+        score: 68,
+        proposerConcentration: 35,
+        automationLevel: 85,
+        multisigConfig: "6-of-9",
+        status: "moderate",
+      },
+      community: {
+        score: 85,
+        dau: 12500,
+        wau: 45000,
+        retention: 68,
+        engagement: 72,
+        status: "healthy",
+      },
+      efficiency: {
+        score: 72,
+        avgExecutionTime: 18,
+        proposalThroughput: 14,
+        successRate: 78,
+        status: "healthy",
+      },
+      protocol: {
+        score: 88,
+        tvl: 4.2e9,
+        revenue: 125000000,
+        users: 850000,
+        security: 95,
+        status: "healthy",
+      },
+    },
+    trends: [
+      { date: "2024-01", score: 72 },
+      { date: "2024-02", score: 74 },
+      { date: "2024-03", score: 75 },
+      { date: "2024-04", score: 76 },
+      { date: "2024-05", score: 77 },
+      { date: "2024-06", score: 78 },
+    ],
+    alerts: [
+      {
+        type: "warning",
+        message: "Proposer concentration above 30% threshold",
+        dimension: "decentralization",
+      },
+      {
+        type: "info",
+        message: "Treasury diversification improved by 8%",
+        dimension: "treasury",
+      },
+    ],
+  },
+  arbitrum: {
+    name: "Arbitrum DAO",
+    stage: 1,
+    overallScore: 72,
+    dimensions: {
+      governance: {
+        score: 75,
+        votingRate: 38.2,
+        nakamotoCoefficient: 24,
+        giniCoefficient: 0.68,
+        whaleConcentration: 22.3,
+        status: "healthy",
+      },
+      treasury: {
+        score: 82,
+        size: 3.5e9,
+        burnRate: 8.2,
+        runway: 42,
+        diversification: 58,
+        status: "healthy",
+      },
+      decentralization: {
+        score: 65,
+        proposerConcentration: 38,
+        automationLevel: 78,
+        multisigConfig: "9-of-12",
+        status: "moderate",
+      },
+      community: {
+        score: 78,
+        dau: 18500,
+        wau: 62000,
+        retention: 72,
+        engagement: 68,
+        status: "healthy",
+      },
+      efficiency: {
+        score: 68,
+        avgExecutionTime: 22,
+        proposalThroughput: 11,
+        successRate: 72,
+        status: "moderate",
+      },
+      protocol: {
+        score: 85,
+        tvl: 6.8e9,
+        revenue: 98000000,
+        users: 1200000,
+        security: 92,
+        status: "healthy",
+      },
+    },
+    trends: [
+      { date: "2024-01", score: 68 },
+      { date: "2024-02", score: 69 },
+      { date: "2024-03", score: 70 },
+      { date: "2024-04", score: 71 },
+      { date: "2024-05", score: 71 },
+      { date: "2024-06", score: 72 },
+    ],
+    alerts: [
+      {
+        type: "warning",
+        message: "Execution time trending upward",
+        dimension: "efficiency",
+      },
+    ],
+  },
+  optimism: {
+    name: "Optimism Collective",
+    stage: 2,
+    overallScore: 84,
+    dimensions: {
+      governance: {
+        score: 88,
+        votingRate: 52.8,
+        nakamotoCoefficient: 35,
+        giniCoefficient: 0.58,
+        whaleConcentration: 14.2,
+        status: "healthy",
+      },
+      treasury: {
+        score: 78,
+        size: 1.9e9,
+        burnRate: 15.8,
+        runway: 22,
+        diversification: 72,
+        status: "healthy",
+      },
+      decentralization: {
+        score: 82,
+        proposerConcentration: 28,
+        automationLevel: 92,
+        multisigConfig: "5-of-8",
+        status: "healthy",
+      },
+      community: {
+        score: 90,
+        dau: 22000,
+        wau: 78000,
+        retention: 82,
+        engagement: 85,
+        status: "healthy",
+      },
+      efficiency: {
+        score: 85,
+        avgExecutionTime: 12,
+        proposalThroughput: 18,
+        successRate: 85,
+        status: "healthy",
+      },
+      protocol: {
+        score: 82,
+        tvl: 2.1e9,
+        revenue: 68000000,
+        users: 680000,
+        security: 94,
+        status: "healthy",
+      },
+    },
+    trends: [
+      { date: "2024-01", score: 78 },
+      { date: "2024-02", score: 80 },
+      { date: "2024-03", score: 81 },
+      { date: "2024-04", score: 82 },
+      { date: "2024-05", score: 83 },
+      { date: "2024-06", score: 84 },
+    ],
+    alerts: [
+      {
+        type: "info",
+        message: "Highest community engagement this quarter",
+        dimension: "community",
+      },
+    ],
+  },
+  nouns: {
+    name: "Nouns DAO",
+    stage: 1,
+    overallScore: 76,
+    dimensions: {
+      governance: {
+        score: 85,
+        votingRate: 68.5,
+        nakamotoCoefficient: 42,
+        giniCoefficient: 0.52,
+        whaleConcentration: 12.8,
+        status: "healthy",
+      },
+      treasury: {
+        score: 72,
+        size: 0.85e9,
+        burnRate: 18.5,
+        runway: 18,
+        diversification: 45,
+        status: "moderate",
+      },
+      decentralization: {
+        score: 78,
+        proposerConcentration: 25,
+        automationLevel: 88,
+        multisigConfig: "4-of-7",
+        status: "healthy",
+      },
+      community: {
+        score: 82,
+        dau: 8500,
+        wau: 28000,
+        retention: 78,
+        engagement: 88,
+        status: "healthy",
+      },
+      efficiency: {
+        score: 68,
+        avgExecutionTime: 24,
+        proposalThroughput: 22,
+        successRate: 68,
+        status: "moderate",
+      },
+      protocol: {
+        score: 72,
+        tvl: 0.42e9,
+        revenue: 28000000,
+        users: 185000,
+        security: 88,
+        status: "healthy",
+      },
+    },
+    trends: [
+      { date: "2024-01", score: 74 },
+      { date: "2024-02", score: 75 },
+      { date: "2024-03", score: 75 },
+      { date: "2024-04", score: 76 },
+      { date: "2024-05", score: 76 },
+      { date: "2024-06", score: 76 },
+    ],
+    alerts: [
+      {
+        type: "warning",
+        message: "Treasury runway below 24 months",
+        dimension: "treasury",
+      },
+      {
+        type: "info",
+        message: "Exceptional voting participation rate",
+        dimension: "governance",
+      },
+    ],
+  },
+  morpho: {
+    name: "Morpho DAO",
+    stage: 0,
+    overallScore: 65,
+    dimensions: {
+      governance: {
+        score: 62,
+        votingRate: 28.5,
+        nakamotoCoefficient: 18,
+        giniCoefficient: 0.72,
+        whaleConcentration: 28.5,
+        status: "moderate",
+      },
+      treasury: {
+        score: 68,
+        size: 0.45e9,
+        burnRate: 22.5,
+        runway: 14,
+        diversification: 38,
+        status: "moderate",
+      },
+      decentralization: {
+        score: 58,
+        proposerConcentration: 45,
+        automationLevel: 68,
+        multisigConfig: "3-of-5",
+        status: "moderate",
+      },
+      community: {
+        score: 72,
+        dau: 5200,
+        wau: 18500,
+        retention: 62,
+        engagement: 58,
+        status: "moderate",
+      },
+      efficiency: {
+        score: 65,
+        avgExecutionTime: 28,
+        proposalThroughput: 8,
+        successRate: 72,
+        status: "moderate",
+      },
+      protocol: {
+        score: 78,
+        tvl: 1.2e9,
+        revenue: 42000000,
+        users: 285000,
+        security: 90,
+        status: "healthy",
+      },
+    },
+    trends: [
+      { date: "2024-01", score: 58 },
+      { date: "2024-02", score: 60 },
+      { date: "2024-03", score: 62 },
+      { date: "2024-04", score: 63 },
+      { date: "2024-05", score: 64 },
+      { date: "2024-06", score: 65 },
+    ],
+    alerts: [
+      {
+        type: "warning",
+        message: "High proposer concentration - centralization risk",
+        dimension: "decentralization",
+      },
+      {
+        type: "warning",
+        message: "Low voting participation rate",
+        dimension: "governance",
+      },
+    ],
+  },
+}
+
+export function DAODashboard() {
+  const [selectedDAO, setSelectedDAO] = useState<string>("uniswap")
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [expandedDAO, setExpandedDAO] = useState<string | null>(null)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const aggregateMetrics = {
+    totalDAOs: Object.keys(daoDatabase).length,
+    totalTVL: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.protocol.tvl, 0),
+    totalTreasury: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.treasury.size, 0),
+    avgScore: Math.round(
+      Object.values(daoDatabase).reduce((sum, dao) => sum + dao.overallScore, 0) / Object.keys(daoDatabase).length,
+    ),
+    totalMembers: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.protocol.users, 0),
+    totalProposals: Object.values(daoDatabase).reduce(
+      (sum, dao) => sum + dao.dimensions.efficiency.proposalThroughput,
+      0,
+    ),
+    mostActive: Object.entries(daoDatabase).reduce(
+      (max, [key, dao]) =>
+        dao.dimensions.community.engagement > daoDatabase[max as keyof typeof daoDatabase].dimensions.community.engagement ? key : max,
+      "uniswap",
+    ),
+    criticalAlerts: Object.values(daoDatabase).reduce(
+      (sum, dao) => sum + dao.alerts.filter((a) => a.type === "warning").length,
+      0,
+    ),
+  }
+
+  const selectedDAOData = daoDatabase[selectedDAO as keyof typeof daoDatabase]
+
+  return (
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
+      <div className="pointer-events-none absolute inset-0 z-50">
+        <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-scan-line" />
+      </div>
+
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+            <Database className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-foreground">DAO Health Monitor</h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="font-mono">{currentTime.toLocaleDateString()}</span>
+            <span className="font-mono">{currentTime.toLocaleTimeString()}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
+            </div>
+            <span className="text-sm font-medium text-success">Live</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-sidebar p-4">
+          {/* Overview section */}
+          <div>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overview</h2>
+            <Card className="border-border bg-card p-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Total DAOs</span>
+                  <span className="text-lg font-bold text-foreground">{aggregateMetrics.totalDAOs}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Avg Score</span>
+                  <span className="text-lg font-bold text-primary">{aggregateMetrics.avgScore}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Total TVL</span>
+                  <span className="text-lg font-bold text-accent">
+                    ${(aggregateMetrics.totalTVL / 1e9).toFixed(1)}B
+                  </span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* DAO Selector */}
+          <div>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">DAOs</h2>
+            <div className="space-y-1">
+              {Object.entries(daoDatabase).map(([key, dao]) => {
+                const proposals = daoProposals[key] || []
+                const hasProposals = proposals.length > 0
+                const isExpanded = expandedDAO === key
+
+                return (
+                  <div key={key} className="space-y-1">
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        className={`flex-1 justify-start gap-2 ${
+                          selectedDAO === key
+                            ? "bg-primary/10 text-primary hover:bg-primary/15"
+                            : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
+                        }`}
+                        onClick={() => setSelectedDAO(key)}
+                      >
+                        <Circle className={`h-2 w-2 ${selectedDAO === key ? "fill-primary" : "fill-muted-foreground"}`} />
+                        <span className="flex-1 text-left text-sm">{dao.name}</span>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            dao.overallScore >= 80
+                              ? "border-success/40 text-success"
+                              : dao.overallScore >= 70
+                                ? "border-primary/40 text-primary"
+                                : "border-warning/40 text-warning"
+                          }`}
+                        >
+                          {dao.overallScore}
+                        </Badge>
+                      </Button>
+                      {hasProposals && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`px-2 ${
+                            isExpanded
+                              ? "bg-primary/10 text-primary hover:bg-primary/15"
+                              : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
+                          }`}
+                          onClick={() => setExpandedDAO(isExpanded ? null : key)}
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Proposals List */}
+                    {hasProposals && isExpanded && (
+                      <div className="ml-4 space-y-1 border-l-2 border-primary/20 pl-2">
+                        {proposals.map((proposal) => (
+                          <Link
+                            key={proposal.id}
+                            href={proposal.url}
+                            className="flex items-center gap-2 rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+                          >
+                            <ChevronRight className="h-3 w-3" />
+                            <span className="flex-1 truncate">{proposal.title}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Alerts */}
+          {aggregateMetrics.criticalAlerts > 0 && (
+            <div>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alerts</h2>
+              <Card className="border-warning/20 bg-warning/5 p-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{aggregateMetrics.criticalAlerts} Warnings</p>
+                    <p className="text-xs text-muted-foreground">Requires attention</p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          )}
+        </aside>
+
+        <main className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Header with DAO name and score */}
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground">{selectedDAOData.name}</h2>
+                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    Stage {selectedDAOData.stage} •{" "}
+                    {selectedDAOData.stage === 0
+                      ? "Centralized"
+                      : selectedDAOData.stage === 1
+                        ? "Functional Decentralization"
+                        : "Full Decentralization"}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Overall Health</p>
+                  <p className="text-4xl font-bold text-primary">{selectedDAOData.overallScore}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Key metrics row */}
+            <div className="mb-6 grid grid-cols-4 gap-4">
+              <Card className="border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Voting Rate</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                      {selectedDAOData.dimensions.governance.votingRate}%
+                    </p>
+                  </div>
+                  <Vote className="h-8 w-8 text-primary/30" />
+                </div>
+              </Card>
+              <Card className="border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Treasury</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                      ${(selectedDAOData.dimensions.treasury.size / 1e9).toFixed(1)}B
+                    </p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-accent/30" />
+                </div>
+              </Card>
+              <Card className="border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Members</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                      {(selectedDAOData.dimensions.protocol.users / 1000).toFixed(0)}K
+                    </p>
+                  </div>
+                  <Users className="h-8 w-8 text-success/30" />
+                </div>
+              </Card>
+              <Card className="border-border bg-card p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground">TVL</p>
+                    <p className="mt-1 text-2xl font-bold text-foreground">
+                      ${(selectedDAOData.dimensions.protocol.tvl / 1e9).toFixed(1)}B
+                    </p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-primary/30" />
+                </div>
+              </Card>
+            </div>
+
+            {/* Main visualization and metrics */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* Recently Proposals - Left sidebar */}
+              <div className="col-span-1">
+                <Card className="border-border bg-card p-4 h-full">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground">Recent Proposals</h3>
+                    {daoProposals[selectedDAO] && daoProposals[selectedDAO].length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {daoProposals[selectedDAO].length}
+                      </Badge>
+                    )}
+                  </div>
+                  {daoProposals[selectedDAO] && daoProposals[selectedDAO].length > 0 ? (
+                    <div className="space-y-2">
+                      {daoProposals[selectedDAO].map((proposal) => (
+                        <Link
+                          key={proposal.id}
+                          href={proposal.url}
+                          className="block rounded-lg border border-border bg-card/50 p-3 hover:bg-primary/5 hover:border-primary/30 transition-all duration-200"
+                        >
+                          <div className="flex items-start gap-2">
+                            <FileText className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-foreground truncate">
+                                {proposal.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Click to analyze
+                              </p>
+                            </div>
+                            <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                      <p className="text-xs text-muted-foreground">No recent proposals</p>
+                    </div>
+                  )}
+                </Card>
+              </div>
+
+              {/* Dimension Analysis - Center */}
+              <Card className="col-span-2 border-border bg-card p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground">Dimension Analysis</h3>
+                  <Badge variant="outline" className="text-xs">
+                    6 Metrics
+                  </Badge>
+                </div>
+                <DimensionChart data={selectedDAOData.dimensions} />
+              </Card>
+
+              {/* Right sidebar metrics */}
+              <div className="space-y-4 col-span-1">
+                <Card className="border-border bg-card p-4">
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Governance</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Score</span>
+                      <span className="font-bold text-primary">{selectedDAOData.dimensions.governance.score}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Nakamoto</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.governance.nakamotoCoefficient}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Gini</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.governance.giniCoefficient}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="border-border bg-card p-4">
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Treasury</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Score</span>
+                      <span className="font-bold text-accent">{selectedDAOData.dimensions.treasury.score}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Runway</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.treasury.runway}mo
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Burn Rate</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.treasury.burnRate}%
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="border-border bg-card p-4">
+                  <h3 className="mb-3 text-sm font-semibold text-foreground">Community</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Score</span>
+                      <span className="font-bold text-success">{selectedDAOData.dimensions.community.score}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Engagement</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.community.engagement}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Retention</span>
+                      <span className="font-medium text-foreground">
+                        {selectedDAOData.dimensions.community.retention}%
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+
+            {/* Bottom section with detailed metrics */}
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              <Card className="border-border bg-card p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">Decentralization</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Score</span>
+                    <span className="font-bold">{selectedDAOData.dimensions.decentralization.score}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Automation</span>
+                    <span>{selectedDAOData.dimensions.decentralization.automationLevel}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Multisig</span>
+                    <span>{selectedDAOData.dimensions.decentralization.multisigConfig}</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border-border bg-card p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-warning" />
+                  <h3 className="text-sm font-semibold text-foreground">Efficiency</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Score</span>
+                    <span className="font-bold">{selectedDAOData.dimensions.efficiency.score}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Exec Time</span>
+                    <span>{selectedDAOData.dimensions.efficiency.avgExecutionTime}d</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Success Rate</span>
+                    <span>{selectedDAOData.dimensions.efficiency.successRate}%</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border-border bg-card p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-success" />
+                  <h3 className="text-sm font-semibold text-foreground">Protocol</h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Score</span>
+                    <span className="font-bold">{selectedDAOData.dimensions.protocol.score}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Revenue</span>
+                    <span>${(selectedDAOData.dimensions.protocol.revenue / 1e6).toFixed(0)}M</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Security</span>
+                    <span>{selectedDAOData.dimensions.protocol.security}%</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Alerts section */}
+            {selectedDAOData.alerts.length > 0 && (
+              <Card className="mt-6 border-border bg-card p-4">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">Active Alerts</h3>
+                <div className="space-y-2">
+                  {selectedDAOData.alerts.map((alert, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-start gap-3 rounded-lg border p-3 ${
+                        alert.type === "warning" ? "border-warning/20 bg-warning/5" : "border-primary/20 bg-primary/5"
+                      }`}
+                    >
+                      {alert.type === "warning" ? (
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                      ) : (
+                        <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm text-foreground">{alert.message}</p>
+                        <p className="mt-1 text-xs text-muted-foreground capitalize">{alert.dimension}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}

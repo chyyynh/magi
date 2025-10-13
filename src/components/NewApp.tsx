@@ -55,34 +55,8 @@ export default function NewApp() {
     setView('selection');
   };
 
-  // Show MAGI loading animation when loading a proposal
-  if (proposal.loading) {
-    return (
-      <div className="flex flex-col h-dvh overflow-hidden bg-black">
-        {/* Header */}
-        <div className="flex p-4 border-b border-[#FF6600]/50 justify-between items-center">
-          <h2 className="text-lg sm:text-3xl font-bold text-[#FF6600]">
-            MAGI TERMINAL
-          </h2>
-          <ConnectButton />
-        </div>
-
-        {/* MAGI Loading Animation */}
-        <div className="flex-grow overflow-hidden">
-          <MAGIDisplay
-            magi={magi}
-            proposalId="載入中..."
-            proposalTitle="正在載入提案資料..."
-            layout="desktop"
-            animated={true}
-          />
-        </div>
-      </div>
-    );
-  }
-
   // Show proposal selector if no proposal is loaded or user wants to select different proposal
-  if (!proposal.current || ui.view === 'selection') {
+  if ((!proposal.current && !proposal.loading) || ui.view === 'selection') {
     return (
       <div className="flex flex-col h-dvh overflow-hidden bg-black">
         {/* Header */}
@@ -101,7 +75,7 @@ export default function NewApp() {
     );
   }
 
-  // Show main application with proposal loaded
+  // Show main application with proposal loaded or loading
   if (isMobile) {
     return (
       <div className="flex flex-col h-dvh overflow-hidden bg-black">
@@ -117,9 +91,10 @@ export default function NewApp() {
         <div className="flex-grow overflow-hidden flex flex-col relative">
           <MAGIDisplay
             magi={magi}
-            proposalId={proposal.current.id}
-            proposalTitle={proposal.current.title}
+            proposalId={proposal.current?.id || "載入中..."}
+            proposalTitle={proposal.current?.title || "正在載入提案資料..."}
             layout="mobile"
+            animated={proposal.loading}
           />
 
           {/* ProposalViewer Section - takes remaining space */}
@@ -129,6 +104,7 @@ export default function NewApp() {
               recommendedChoice={magi.decision?.choice}
               onVote={handleVote}
               onBack={handleBackToSelection}
+              loading={proposal.loading}
             />
           </div>
 
@@ -159,6 +135,7 @@ export default function NewApp() {
             recommendedChoice={magi.decision?.choice}
             onVote={handleVote}
             onBack={handleBackToSelection}
+            loading={proposal.loading}
           />
         </div>
 
@@ -166,9 +143,10 @@ export default function NewApp() {
         <div className="flex-1">
           <MAGIDisplay
             magi={magi}
-            proposalId={proposal.current.id}
-            proposalTitle={proposal.current.title}
+            proposalId={proposal.current?.id || "載入中..."}
+            proposalTitle={proposal.current?.title || "正在載入提案資料..."}
             layout="desktop"
+            animated={proposal.loading}
           />
         </div>
 

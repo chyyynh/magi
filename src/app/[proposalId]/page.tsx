@@ -3,9 +3,6 @@
 // Dynamic route for individual proposals
 // URL format: /0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359
 
-// Force dynamic rendering for this route
-export const dynamic = 'force-dynamic';
-
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import NewApp from '@/components/NewApp';
