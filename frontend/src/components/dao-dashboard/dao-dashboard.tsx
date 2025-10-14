@@ -19,36 +19,15 @@ import {
   Award,
 } from "lucide-react";
 
-// DAO Proposals mapping
+// DAO Proposals from database
 interface DAOProposal {
   id: string;
   title: string;
-  url: string;
+  description: string | null;
+  status: string;
+  voteCount: number | null;
+  createdAt: number;
 }
-
-const daoProposals: Record<string, DAOProposal[]> = {
-  morpho: [
-    {
-      id: "0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
-      title: "Morpho Proposal #1",
-      url: "/0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
-    },
-    {
-      id: "0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106",
-      title: "Morpho Proposal #2",
-      url: "/0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106",
-    },
-    {
-      id: "0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab",
-      title: "Morpho Proposal #3",
-      url: "/0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab",
-    },
-  ],
-  uniswap: [],
-  arbitrum: [],
-  optimism: [],
-  nouns: [],
-};
 
 const daoDatabase = {
   uniswap: {
@@ -414,6 +393,8 @@ export function DAODashboard() {
   const [selectedDimension, setSelectedDimension] = useState<string | null>(
     null
   );
+  const [proposals, setProposals] = useState<DAOProposal[]>([]);
+  const [loadingProposals, setLoadingProposals] = useState(false);
 
   useEffect(() => {
     // Initialize time on client side only
@@ -424,6 +405,29 @@ export function DAODashboard() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch proposals when selected DAO changes
+  useEffect(() => {
+    async function fetchProposals() {
+      setLoadingProposals(true);
+      try {
+        const response = await fetch(`/api/proposals?daoId=${selectedDAO}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProposals(data);
+        } else {
+          setProposals([]);
+        }
+      } catch (error) {
+        console.error('Error fetching proposals:', error);
+        setProposals([]);
+      } finally {
+        setLoadingProposals(false);
+      }
+    }
+
+    fetchProposals();
+  }, [selectedDAO]);
 
   const aggregateMetrics = {
     totalDAOs: Object.keys(daoDatabase).length,
@@ -698,20 +702,22 @@ export function DAODashboard() {
                     <h3 className="text-sm font-semibold text-foreground">
                       Recent Proposals
                     </h3>
-                    {daoProposals[selectedDAO] &&
-                      daoProposals[selectedDAO].length > 0 && (
-                        <Badge variant="outline" className="text-xs bg-primary/10 border-primary/20">
-                          {daoProposals[selectedDAO].length}
-                        </Badge>
-                      )}
+                    {proposals.length > 0 && (
+                      <Badge variant="outline" className="text-xs bg-primary/10 border-primary/20">
+                        {proposals.length}
+                      </Badge>
+                    )}
                   </div>
-                  {daoProposals[selectedDAO] &&
-                  daoProposals[selectedDAO].length > 0 ? (
+                  {loadingProposals ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : proposals.length > 0 ? (
                     <div className="space-y-2">
-                      {daoProposals[selectedDAO].map((proposal) => (
+                      {proposals.map((proposal) => (
                         <Link
                           key={proposal.id}
-                          href={proposal.url}
+                          href={`/${proposal.id}`}
                           className="block rounded-xl border border-primary/10 bg-card/30 p-3 hover:bg-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:scale-[1.02]"
                         >
                           <div className="flex items-start gap-2">
@@ -720,9 +726,15 @@ export function DAODashboard() {
                               <p className="text-xs font-medium text-foreground truncate">
                                 {proposal.title}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Click to analyze
-                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-xs text-muted-foreground">
+                                  {proposal.voteCount || 0} votes
+                                </p>
+                                <span className="text-xs text-muted-foreground">•</span>
+                                <p className="text-xs text-muted-foreground capitalize">
+                                  {proposal.status}
+                                </p>
+                              </div>
                             </div>
                             <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />
                           </div>
