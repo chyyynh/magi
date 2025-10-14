@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 interface DimensionChartProps {
   data: {
     governance: { score: number }
@@ -9,16 +11,20 @@ interface DimensionChartProps {
     efficiency: { score: number }
     protocol: { score: number }
   }
+  onDimensionClick?: (dimension: string) => void
+  selectedDimension?: string | null
 }
 
-export function DimensionChart({ data }: DimensionChartProps) {
+export function DimensionChart({ data, onDimensionClick, selectedDimension }: DimensionChartProps) {
+  const [hoveredDimension, setHoveredDimension] = useState<string | null>(null)
+
   const dimensions = [
-    { name: "Governance", short: "GOV", score: data.governance.score, angle: 0 },
-    { name: "Treasury", short: "TRS", score: data.treasury.score, angle: 60 },
-    { name: "Decentralization", short: "DEC", score: data.decentralization.score, angle: 120 },
-    { name: "Community", short: "COM", score: data.community.score, angle: 180 },
-    { name: "Efficiency", short: "EFF", score: data.efficiency.score, angle: 240 },
-    { name: "Protocol", short: "PRO", score: data.protocol.score, angle: 300 },
+    { name: "Governance", short: "GOV", key: "governance", score: data.governance.score, angle: 0 },
+    { name: "Treasury", short: "TRS", key: "treasury", score: data.treasury.score, angle: 60 },
+    { name: "Decentralization", short: "DEC", key: "decentralization", score: data.decentralization.score, angle: 120 },
+    { name: "Community", short: "COM", key: "community", score: data.community.score, angle: 180 },
+    { name: "Efficiency", short: "EFF", key: "efficiency", score: data.efficiency.score, angle: 240 },
+    { name: "Protocol", short: "PRO", key: "protocol", score: data.protocol.score, angle: 300 },
   ]
 
   const size = 320
@@ -98,16 +104,36 @@ export function DimensionChart({ data }: DimensionChartProps) {
 
       {dimensions.map((d) => {
         const point = getPoint(d.angle, (d.score / 100) * maxRadius)
+        const isSelected = selectedDimension === d.key
+        const isHovered = hoveredDimension === d.key
+        const isActive = isSelected || isHovered
+
         return (
-          <g key={d.name}>
-            <circle cx={point.x} cy={point.y} r="6" fill="oklch(0.65 0.25 195)" opacity={0.3} />
+          <g
+            key={d.name}
+            style={{ cursor: onDimensionClick ? 'pointer' : 'default' }}
+            onMouseEnter={() => setHoveredDimension(d.key)}
+            onMouseLeave={() => setHoveredDimension(null)}
+            onClick={() => onDimensionClick?.(d.key)}
+          >
             <circle
               cx={point.x}
               cy={point.y}
-              r="3"
+              r={isActive ? "10" : "6"}
               fill="oklch(0.65 0.25 195)"
+              opacity={isActive ? 0.5 : 0.3}
+              style={{ transition: 'all 0.2s ease' }}
+            />
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r={isActive ? "5" : "3"}
+              fill={isActive ? "oklch(0.7 0.28 195)" : "oklch(0.65 0.25 195)"}
               style={{
-                filter: "drop-shadow(0 0 4px oklch(0.65 0.25 195))",
+                filter: isActive
+                  ? "drop-shadow(0 0 8px oklch(0.65 0.25 195))"
+                  : "drop-shadow(0 0 4px oklch(0.65 0.25 195))",
+                transition: 'all 0.2s ease'
               }}
             />
           </g>
@@ -116,17 +142,37 @@ export function DimensionChart({ data }: DimensionChartProps) {
 
       {dimensions.map((d) => {
         const labelPoint = getPoint(d.angle, maxRadius + 30)
+        const isSelected = selectedDimension === d.key
+        const isHovered = hoveredDimension === d.key
+        const isActive = isSelected || isHovered
+
         return (
-          <g key={d.name}>
+          <g
+            key={d.name}
+            style={{ cursor: onDimensionClick ? 'pointer' : 'default' }}
+            onMouseEnter={() => setHoveredDimension(d.key)}
+            onMouseLeave={() => setHoveredDimension(null)}
+            onClick={() => onDimensionClick?.(d.key)}
+          >
             <text
               x={labelPoint.x}
               y={labelPoint.y - 8}
               textAnchor="middle"
-              className="fill-foreground text-xs font-semibold"
+              className={`text-xs font-semibold ${isActive ? 'fill-primary' : 'fill-foreground'}`}
+              style={{ transition: 'all 0.2s ease' }}
             >
               {d.short}
             </text>
-            <text x={labelPoint.x} y={labelPoint.y + 6} textAnchor="middle" className="fill-primary text-xs font-bold">
+            <text
+              x={labelPoint.x}
+              y={labelPoint.y + 6}
+              textAnchor="middle"
+              className="fill-primary text-xs font-bold"
+              style={{
+                fontSize: isActive ? '14px' : '12px',
+                transition: 'all 0.2s ease'
+              }}
+            >
               {d.score}
             </text>
           </g>

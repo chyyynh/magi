@@ -1,25 +1,25 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { Card } from "@/components/dao-dashboard/ui/card"
-import { Badge } from "@/components/dao-dashboard/ui/badge"
-import { Button } from "@/components/dao-dashboard/ui/button"
-import { DimensionChart } from "@/components/dao-dashboard/dimension-chart"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Card } from "@/components/dao-dashboard/ui/card";
+import { Badge } from "@/components/dao-dashboard/ui/badge";
+import { Button } from "@/components/dao-dashboard/ui/button";
+import { DimensionChart } from "@/components/dao-dashboard/dimension-chart";
 import {
   Activity,
   Users,
   Vote,
-  Shield,
   TrendingUp,
-  Zap,
   AlertTriangle,
   Database,
   DollarSign,
   Circle,
   FileText,
   ChevronRight,
-} from "lucide-react"
+  UserCheck,
+  Award,
+} from "lucide-react";
 
 // DAO Proposals mapping
 interface DAOProposal {
@@ -33,24 +33,24 @@ const daoProposals: Record<string, DAOProposal[]> = {
     {
       id: "0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
       title: "Morpho Proposal #1",
-      url: "/0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359"
+      url: "/0x1b0ea13a62517fb9a7ee9cb770867d3d0d50529ed84b65c7e6f5fdd3ab728359",
     },
     {
       id: "0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106",
       title: "Morpho Proposal #2",
-      url: "/0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106"
+      url: "/0x5f6edc0f0a256995c17d7794d1e35505cd70f9c2312285aadc52c37195bf9106",
     },
     {
       id: "0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab",
       title: "Morpho Proposal #3",
-      url: "/0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab"
-    }
+      url: "/0x25b9a39372db49d7872e19ea2e354a30d2670748fcfff85caeaf84b0df99b5ab",
+    },
   ],
   uniswap: [],
   arbitrum: [],
   optimism: [],
-  nouns: []
-}
+  nouns: [],
+};
 
 const daoDatabase = {
   uniswap: {
@@ -408,44 +408,63 @@ const daoDatabase = {
       },
     ],
   },
-}
+};
 
 export function DAODashboard() {
-  const [selectedDAO, setSelectedDAO] = useState<string>("uniswap")
-  const [currentTime, setCurrentTime] = useState(new Date())
-  const [expandedDAO, setExpandedDAO] = useState<string | null>(null)
+  const [selectedDAO, setSelectedDAO] = useState<string>("uniswap");
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [expandedDAO, setExpandedDAO] = useState<string | null>(null);
+  const [selectedDimension, setSelectedDimension] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const aggregateMetrics = {
     totalDAOs: Object.keys(daoDatabase).length,
-    totalTVL: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.protocol.tvl, 0),
-    totalTreasury: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.treasury.size, 0),
-    avgScore: Math.round(
-      Object.values(daoDatabase).reduce((sum, dao) => sum + dao.overallScore, 0) / Object.keys(daoDatabase).length,
+    totalTVL: Object.values(daoDatabase).reduce(
+      (sum, dao) => sum + dao.dimensions.protocol.tvl,
+      0
     ),
-    totalMembers: Object.values(daoDatabase).reduce((sum, dao) => sum + dao.dimensions.protocol.users, 0),
+    totalTreasury: Object.values(daoDatabase).reduce(
+      (sum, dao) => sum + dao.dimensions.treasury.size,
+      0
+    ),
+    avgScore: Math.round(
+      Object.values(daoDatabase).reduce(
+        (sum, dao) => sum + dao.overallScore,
+        0
+      ) / Object.keys(daoDatabase).length
+    ),
+    totalMembers: Object.values(daoDatabase).reduce(
+      (sum, dao) => sum + dao.dimensions.protocol.users,
+      0
+    ),
     totalProposals: Object.values(daoDatabase).reduce(
       (sum, dao) => sum + dao.dimensions.efficiency.proposalThroughput,
-      0,
+      0
     ),
     mostActive: Object.entries(daoDatabase).reduce(
       (max, [key, dao]) =>
-        dao.dimensions.community.engagement > daoDatabase[max as keyof typeof daoDatabase].dimensions.community.engagement ? key : max,
-      "uniswap",
+        dao.dimensions.community.engagement >
+        daoDatabase[max as keyof typeof daoDatabase].dimensions.community
+          .engagement
+          ? key
+          : max,
+      "uniswap"
     ),
     criticalAlerts: Object.values(daoDatabase).reduce(
       (sum, dao) => sum + dao.alerts.filter((a) => a.type === "warning").length,
-      0,
+      0
     ),
-  }
+  };
 
-  const selectedDAOData = daoDatabase[selectedDAO as keyof typeof daoDatabase]
+  const selectedDAOData = daoDatabase[selectedDAO as keyof typeof daoDatabase];
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
@@ -459,13 +478,19 @@ export function DAODashboard() {
             <Database className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-foreground">DAO Health Monitor</h1>
+            <h1 className="text-lg font-semibold text-foreground">
+              DAO Health Monitor
+            </h1>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-mono">{currentTime.toLocaleDateString()}</span>
-            <span className="font-mono">{currentTime.toLocaleTimeString()}</span>
+            <span className="font-mono">
+              {currentTime.toLocaleDateString()}
+            </span>
+            <span className="font-mono">
+              {currentTime.toLocaleTimeString()}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative flex h-2 w-2">
@@ -481,19 +506,31 @@ export function DAODashboard() {
         <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-sidebar p-4">
           {/* Overview section */}
           <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Overview</h2>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Overview
+            </h2>
             <Card className="border-border bg-card p-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total DAOs</span>
-                  <span className="text-lg font-bold text-foreground">{aggregateMetrics.totalDAOs}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Total DAOs
+                  </span>
+                  <span className="text-lg font-bold text-foreground">
+                    {aggregateMetrics.totalDAOs}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Avg Score</span>
-                  <span className="text-lg font-bold text-primary">{aggregateMetrics.avgScore}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Avg Score
+                  </span>
+                  <span className="text-lg font-bold text-primary">
+                    {aggregateMetrics.avgScore}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total TVL</span>
+                  <span className="text-sm text-muted-foreground">
+                    Total TVL
+                  </span>
                   <span className="text-lg font-bold text-accent">
                     ${(aggregateMetrics.totalTVL / 1e9).toFixed(1)}B
                   </span>
@@ -504,12 +541,14 @@ export function DAODashboard() {
 
           {/* DAO Selector */}
           <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">DAOs</h2>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              DAOs
+            </h2>
             <div className="space-y-1">
               {Object.entries(daoDatabase).map(([key, dao]) => {
-                const proposals = daoProposals[key] || []
-                const hasProposals = proposals.length > 0
-                const isExpanded = expandedDAO === key
+                const proposals = daoProposals[key] || [];
+                const hasProposals = proposals.length > 0;
+                const isExpanded = expandedDAO === key;
 
                 return (
                   <div key={key} className="space-y-1">
@@ -523,16 +562,24 @@ export function DAODashboard() {
                         }`}
                         onClick={() => setSelectedDAO(key)}
                       >
-                        <Circle className={`h-2 w-2 ${selectedDAO === key ? "fill-primary" : "fill-muted-foreground"}`} />
-                        <span className="flex-1 text-left text-sm">{dao.name}</span>
+                        <Circle
+                          className={`h-2 w-2 ${
+                            selectedDAO === key
+                              ? "fill-primary"
+                              : "fill-muted-foreground"
+                          }`}
+                        />
+                        <span className="flex-1 text-left text-sm">
+                          {dao.name}
+                        </span>
                         <Badge
                           variant="outline"
                           className={`text-xs ${
                             dao.overallScore >= 80
                               ? "border-success/40 text-success"
                               : dao.overallScore >= 70
-                                ? "border-primary/40 text-primary"
-                                : "border-warning/40 text-warning"
+                              ? "border-primary/40 text-primary"
+                              : "border-warning/40 text-warning"
                           }`}
                         >
                           {dao.overallScore}
@@ -547,7 +594,9 @@ export function DAODashboard() {
                               ? "bg-primary/10 text-primary hover:bg-primary/15"
                               : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
                           }`}
-                          onClick={() => setExpandedDAO(isExpanded ? null : key)}
+                          onClick={() =>
+                            setExpandedDAO(isExpanded ? null : key)
+                          }
                         >
                           <FileText className="h-4 w-4" />
                         </Button>
@@ -564,32 +613,18 @@ export function DAODashboard() {
                             className="flex items-center gap-2 rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
                           >
                             <ChevronRight className="h-3 w-3" />
-                            <span className="flex-1 truncate">{proposal.title}</span>
+                            <span className="flex-1 truncate">
+                              {proposal.title}
+                            </span>
                           </Link>
                         ))}
                       </div>
                     )}
                   </div>
-                )
+                );
               })}
             </div>
           </div>
-
-          {/* Alerts */}
-          {aggregateMetrics.criticalAlerts > 0 && (
-            <div>
-              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Alerts</h2>
-              <Card className="border-warning/20 bg-warning/5 p-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-warning" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{aggregateMetrics.criticalAlerts} Warnings</p>
-                    <p className="text-xs text-muted-foreground">Requires attention</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-          )}
         </aside>
 
         <main className="flex flex-1 flex-col overflow-hidden">
@@ -597,22 +632,28 @@ export function DAODashboard() {
             {/* Header with DAO name and score */}
             <div className="mb-6 flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-foreground">{selectedDAOData.name}</h2>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {selectedDAOData.name}
+                </h2>
                 <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                   <span>
                     Stage {selectedDAOData.stage} •{" "}
                     {selectedDAOData.stage === 0
                       ? "Centralized"
                       : selectedDAOData.stage === 1
-                        ? "Functional Decentralization"
-                        : "Full Decentralization"}
+                      ? "Functional Decentralization"
+                      : "Full Decentralization"}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Overall Health</p>
-                  <p className="text-4xl font-bold text-primary">{selectedDAOData.overallScore}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Overall Health
+                  </p>
+                  <p className="text-4xl font-bold text-primary">
+                    {selectedDAOData.overallScore}
+                  </p>
                 </div>
               </div>
             </div>
@@ -635,7 +676,11 @@ export function DAODashboard() {
                   <div>
                     <p className="text-xs text-muted-foreground">Treasury</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">
-                      ${(selectedDAOData.dimensions.treasury.size / 1e9).toFixed(1)}B
+                      $
+                      {(selectedDAOData.dimensions.treasury.size / 1e9).toFixed(
+                        1
+                      )}
+                      B
                     </p>
                   </div>
                   <DollarSign className="h-8 w-8 text-accent/30" />
@@ -646,7 +691,10 @@ export function DAODashboard() {
                   <div>
                     <p className="text-xs text-muted-foreground">Members</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">
-                      {(selectedDAOData.dimensions.protocol.users / 1000).toFixed(0)}K
+                      {(
+                        selectedDAOData.dimensions.protocol.users / 1000
+                      ).toFixed(0)}
+                      K
                     </p>
                   </div>
                   <Users className="h-8 w-8 text-success/30" />
@@ -657,7 +705,11 @@ export function DAODashboard() {
                   <div>
                     <p className="text-xs text-muted-foreground">TVL</p>
                     <p className="mt-1 text-2xl font-bold text-foreground">
-                      ${(selectedDAOData.dimensions.protocol.tvl / 1e9).toFixed(1)}B
+                      $
+                      {(selectedDAOData.dimensions.protocol.tvl / 1e9).toFixed(
+                        1
+                      )}
+                      B
                     </p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-primary/30" />
@@ -671,14 +723,18 @@ export function DAODashboard() {
               <div className="col-span-1">
                 <Card className="border-border bg-card p-4 h-full">
                   <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-foreground">Recent Proposals</h3>
-                    {daoProposals[selectedDAO] && daoProposals[selectedDAO].length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {daoProposals[selectedDAO].length}
-                      </Badge>
-                    )}
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Recent Proposals
+                    </h3>
+                    {daoProposals[selectedDAO] &&
+                      daoProposals[selectedDAO].length > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {daoProposals[selectedDAO].length}
+                        </Badge>
+                      )}
                   </div>
-                  {daoProposals[selectedDAO] && daoProposals[selectedDAO].length > 0 ? (
+                  {daoProposals[selectedDAO] &&
+                  daoProposals[selectedDAO].length > 0 ? (
                     <div className="space-y-2">
                       {daoProposals[selectedDAO].map((proposal) => (
                         <Link
@@ -704,169 +760,552 @@ export function DAODashboard() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
                       <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                      <p className="text-xs text-muted-foreground">No recent proposals</p>
+                      <p className="text-xs text-muted-foreground">
+                        No recent proposals
+                      </p>
                     </div>
                   )}
                 </Card>
               </div>
 
-              {/* Dimension Analysis - Center */}
-              <Card className="col-span-2 border-border bg-card p-6">
+              {/* Dimension Analysis - Takes up 2 columns */}
+              <Card className="col-span-2 border-border bg-card p-6 relative">
                 <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground">Dimension Analysis</h3>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Dimension Analysis
+                  </h3>
                   <Badge variant="outline" className="text-xs">
-                    6 Metrics
+                    {selectedDimension
+                      ? "Interactive Mode"
+                      : "Click dimension to explore"}
                   </Badge>
                 </div>
-                <DimensionChart data={selectedDAOData.dimensions} />
+
+                {/* Dynamic Layout Container */}
+                <div className="relative min-h-[400px]">
+                  {/* Detail Panel - Positioned dynamically based on selected dimension */}
+                  {selectedDimension && (
+                    <div
+                      className={`absolute z-10 transition-all duration-500 ease-out ${
+                        // Position based on dimension angle
+                        selectedDimension === "governance" // 0° - Top
+                          ? "top-0 left-1/2 -translate-x-1/2 w-[90%]"
+                          : selectedDimension === "treasury" // 60° - Top Right
+                          ? "top-0 right-0 w-[45%]"
+                          : selectedDimension === "decentralization" // 120° - Bottom Right
+                          ? "bottom-0 right-0 w-[45%]"
+                          : selectedDimension === "community" // 180° - Bottom
+                          ? "bottom-0 left-1/2 -translate-x-1/2 w-[90%]"
+                          : selectedDimension === "efficiency" // 240° - Bottom Left
+                          ? "bottom-0 left-0 w-[45%]"
+                          : selectedDimension === "protocol" // 300° - Top Left
+                          ? "top-0 left-0 w-[45%]"
+                          : ""
+                      }`}
+                      style={{
+                        animation: "slideIn 0.5s ease-out",
+                      }}
+                    >
+                      <div className="rounded-lg bg-background/95 backdrop-blur-sm border-2 border-primary/30 shadow-lg p-4">
+                        {selectedDimension === "governance" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-primary">
+                                Governance Details
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Voting Rate
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.governance
+                                      .votingRate
+                                  }
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Nakamoto
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.governance
+                                      .nakamotoCoefficient
+                                  }
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Gini
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.governance
+                                      .giniCoefficient
+                                  }
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Whale Conc.
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.governance
+                                      .whaleConcentration
+                                  }
+                                  %
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {selectedDimension === "treasury" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-accent">
+                                Treasury Details
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Size
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  $
+                                  {(
+                                    selectedDAOData.dimensions.treasury.size /
+                                    1e9
+                                  ).toFixed(2)}
+                                  B
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Burn Rate
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {selectedDAOData.dimensions.treasury.burnRate}
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Runway
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {selectedDAOData.dimensions.treasury.runway}mo
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Diversification
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.treasury
+                                      .diversification
+                                  }
+                                  %
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {selectedDimension === "decentralization" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-primary">
+                                Decentralization
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Proposer Conc.
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.decentralization
+                                      .proposerConcentration
+                                  }
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Automation
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.decentralization
+                                      .automationLevel
+                                  }
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2 col-span-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Multisig
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.decentralization
+                                      .multisigConfig
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {selectedDimension === "community" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-success">
+                                Community Details
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  DAU
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {selectedDAOData.dimensions.community.dau.toLocaleString()}
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  WAU
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {selectedDAOData.dimensions.community.wau.toLocaleString()}
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Retention
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.community
+                                      .retention
+                                  }
+                                  %
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Engagement
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.community
+                                      .engagement
+                                  }
+                                  %
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {selectedDimension === "efficiency" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-warning">
+                                Efficiency Details
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Exec Time
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.efficiency
+                                      .avgExecutionTime
+                                  }
+                                  d
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Throughput
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.efficiency
+                                      .proposalThroughput
+                                  }
+                                  /mo
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2 col-span-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Success Rate
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {
+                                    selectedDAOData.dimensions.efficiency
+                                      .successRate
+                                  }
+                                  %
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {selectedDimension === "protocol" && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold text-success">
+                                Protocol Details
+                              </h4>
+                              <button
+                                onClick={() => setSelectedDimension(null)}
+                                className="text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  TVL
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  $
+                                  {(
+                                    selectedDAOData.dimensions.protocol.tvl /
+                                    1e9
+                                  ).toFixed(2)}
+                                  B
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Revenue
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  $
+                                  {(
+                                    selectedDAOData.dimensions.protocol
+                                      .revenue / 1e6
+                                  ).toFixed(1)}
+                                  M
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Users
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {(
+                                    selectedDAOData.dimensions.protocol.users /
+                                    1000
+                                  ).toFixed(0)}
+                                  K
+                                </p>
+                              </div>
+                              <div className="rounded bg-card/50 border border-border p-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Security
+                                </p>
+                                <p className="text-base font-bold text-foreground">
+                                  {selectedDAOData.dimensions.protocol.security}
+                                  %
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Radar Chart - Shifts and scales when dimension is selected */}
+                  <div
+                    className={`transition-all duration-500 ease-out ${
+                      selectedDimension
+                        ? selectedDimension === "governance" ||
+                          selectedDimension === "protocol" ||
+                          selectedDimension === "treasury"
+                          ? "scale-75 translate-y-[80px]" // Top dimensions - shift down
+                          : "scale-75 -translate-y-[80px]" // Bottom dimensions - shift up
+                        : "scale-100"
+                    } flex items-center justify-center`}
+                    style={{ minHeight: "400px" }}
+                  >
+                    <DimensionChart
+                      data={selectedDAOData.dimensions}
+                      onDimensionClick={setSelectedDimension}
+                      selectedDimension={selectedDimension}
+                    />
+                  </div>
+                </div>
               </Card>
 
-              {/* Right sidebar metrics */}
-              <div className="space-y-4 col-span-1">
-                <Card className="border-border bg-card p-4">
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Governance</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Score</span>
-                      <span className="font-bold text-primary">{selectedDAOData.dimensions.governance.score}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Nakamoto</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.governance.nakamotoCoefficient}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Gini</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.governance.giniCoefficient}
-                      </span>
-                    </div>
+              {/* Voter Analysis - Right sidebar */}
+              <div className="col-span-1">
+                <Card className="border-border bg-card p-4 h-full">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      Voter Analysis
+                    </h3>
+                    <UserCheck className="h-4 w-4 text-primary" />
                   </div>
-                </Card>
 
-                <Card className="border-border bg-card p-4">
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Treasury</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Score</span>
-                      <span className="font-bold text-accent">{selectedDAOData.dimensions.treasury.score}</span>
+                  {/* Top Voters */}
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Top Voters
+                      </p>
+                      <div className="space-y-2">
+                        {[
+                          { address: "0x1234...5678", power: "12.5%", votes: 24 },
+                          { address: "0x8765...4321", power: "8.3%", votes: 18 },
+                          { address: "0xabcd...ef12", power: "6.2%", votes: 15 },
+                        ].map((voter, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between rounded-lg border border-border bg-card/50 p-2"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Award
+                                className={`h-3 w-3 ${
+                                  idx === 0
+                                    ? "text-warning"
+                                    : idx === 1
+                                    ? "text-muted-foreground"
+                                    : "text-muted-foreground/60"
+                                }`}
+                              />
+                              <span className="text-xs font-mono text-foreground">
+                                {voter.address}
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs font-bold text-primary">
+                                {voter.power}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {voter.votes} votes
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Runway</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.treasury.runway}mo
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Burn Rate</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.treasury.burnRate}%
-                      </span>
-                    </div>
-                  </div>
-                </Card>
 
-                <Card className="border-border bg-card p-4">
-                  <h3 className="mb-3 text-sm font-semibold text-foreground">Community</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Score</span>
-                      <span className="font-bold text-success">{selectedDAOData.dimensions.community.score}</span>
+                    {/* Voter Stats */}
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Participation Stats
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">
+                            Active Voters
+                          </span>
+                          <span className="text-sm font-bold text-foreground">
+                            {(selectedDAOData.dimensions.governance.nakamotoCoefficient * 10).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">
+                            Avg Vote Power
+                          </span>
+                          <span className="text-sm font-bold text-primary">
+                            {(100 / selectedDAOData.dimensions.governance.nakamotoCoefficient).toFixed(2)}%
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">
+                            Voter Diversity
+                          </span>
+                          <span className="text-sm font-bold text-success">
+                            {(100 - selectedDAOData.dimensions.governance.giniCoefficient * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Engagement</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.community.engagement}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Retention</span>
-                      <span className="font-medium text-foreground">
-                        {selectedDAOData.dimensions.community.retention}%
-                      </span>
+
+                    {/* Voting Patterns */}
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Recent Activity
+                      </p>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-xs">
+                          <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+                          <span className="text-muted-foreground">
+                            High engagement last 7 days
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          <span className="text-muted-foreground">
+                            {selectedDAOData.dimensions.governance.votingRate}% participation rate
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Card>
               </div>
             </div>
 
-            {/* Bottom section with detailed metrics */}
-            <div className="mt-6 grid grid-cols-3 gap-4">
-              <Card className="border-border bg-card p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-foreground">Decentralization</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Score</span>
-                    <span className="font-bold">{selectedDAOData.dimensions.decentralization.score}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Automation</span>
-                    <span>{selectedDAOData.dimensions.decentralization.automationLevel}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Multisig</span>
-                    <span>{selectedDAOData.dimensions.decentralization.multisigConfig}</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="border-border bg-card p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-warning" />
-                  <h3 className="text-sm font-semibold text-foreground">Efficiency</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Score</span>
-                    <span className="font-bold">{selectedDAOData.dimensions.efficiency.score}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Exec Time</span>
-                    <span>{selectedDAOData.dimensions.efficiency.avgExecutionTime}d</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Success Rate</span>
-                    <span>{selectedDAOData.dimensions.efficiency.successRate}%</span>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="border-border bg-card p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-success" />
-                  <h3 className="text-sm font-semibold text-foreground">Protocol</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Score</span>
-                    <span className="font-bold">{selectedDAOData.dimensions.protocol.score}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Revenue</span>
-                    <span>${(selectedDAOData.dimensions.protocol.revenue / 1e6).toFixed(0)}M</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Security</span>
-                    <span>{selectedDAOData.dimensions.protocol.security}%</span>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
             {/* Alerts section */}
             {selectedDAOData.alerts.length > 0 && (
               <Card className="mt-6 border-border bg-card p-4">
-                <h3 className="mb-3 text-sm font-semibold text-foreground">Active Alerts</h3>
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
+                  Active Alerts
+                </h3>
                 <div className="space-y-2">
                   {selectedDAOData.alerts.map((alert, i) => (
                     <div
                       key={i}
                       className={`flex items-start gap-3 rounded-lg border p-3 ${
-                        alert.type === "warning" ? "border-warning/20 bg-warning/5" : "border-primary/20 bg-primary/5"
+                        alert.type === "warning"
+                          ? "border-warning/20 bg-warning/5"
+                          : "border-primary/20 bg-primary/5"
                       }`}
                     >
                       {alert.type === "warning" ? (
@@ -875,8 +1314,12 @@ export function DAODashboard() {
                         <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       )}
                       <div className="flex-1">
-                        <p className="text-sm text-foreground">{alert.message}</p>
-                        <p className="mt-1 text-xs text-muted-foreground capitalize">{alert.dimension}</p>
+                        <p className="text-sm text-foreground">
+                          {alert.message}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground capitalize">
+                          {alert.dimension}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -887,5 +1330,5 @@ export function DAODashboard() {
         </main>
       </div>
     </div>
-  )
+  );
 }
