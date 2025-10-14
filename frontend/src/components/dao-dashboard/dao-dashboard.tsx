@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Card } from "@/components/dao-dashboard/ui/card";
 import { Badge } from "@/components/dao-dashboard/ui/badge";
-import { Button } from "@/components/dao-dashboard/ui/button";
 import { DimensionChart } from "@/components/dao-dashboard/dimension-chart";
 import {
   Activity,
@@ -14,7 +13,6 @@ import {
   AlertTriangle,
   Database,
   DollarSign,
-  Circle,
   FileText,
   ChevronRight,
   UserCheck,
@@ -412,13 +410,15 @@ const daoDatabase = {
 
 export function DAODashboard() {
   const [selectedDAO, setSelectedDAO] = useState<string>("uniswap");
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [expandedDAO, setExpandedDAO] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [selectedDimension, setSelectedDimension] = useState<string | null>(
     null
   );
 
   useEffect(() => {
+    // Initialize time on client side only
+    setCurrentTime(new Date());
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -467,14 +467,30 @@ export function DAODashboard() {
   const selectedDAOData = daoDatabase[selectedDAO as keyof typeof daoDatabase];
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <div className="pointer-events-none absolute inset-0 z-50">
-        <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-scan-line" />
+    <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative">
+      {/* Tech background grid */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(to right, hsl(var(--primary) / 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, hsl(var(--primary) / 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }} />
       </div>
 
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-sidebar px-6">
+      {/* Animated scan line */}
+      <div className="pointer-events-none absolute inset-0 z-50">
+        <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent animate-scan-line" />
+      </div>
+
+      {/* Ambient glow effects */}
+      <div className="pointer-events-none absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px]" />
+
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-primary/10 bg-background/40 backdrop-blur-xl px-6 relative z-10">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 ring-1 ring-primary/30">
             <Database className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -484,15 +500,17 @@ export function DAODashboard() {
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-mono">
-              {currentTime.toLocaleDateString()}
-            </span>
-            <span className="font-mono">
-              {currentTime.toLocaleTimeString()}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
+          {currentTime && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="font-mono">
+                {currentTime.toLocaleDateString()}
+              </span>
+              <span className="font-mono">
+                {currentTime.toLocaleTimeString()}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 ring-1 ring-success/20">
             <div className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
@@ -502,14 +520,14 @@ export function DAODashboard() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-sidebar p-4">
+      <div className="flex flex-1 overflow-hidden gap-4 p-4">
+        <aside className="flex w-2/7 shrink-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-primary/10 bg-background/40 backdrop-blur-xl p-6 shadow-2xl shadow-primary/5 ring-1 ring-primary/5">
           {/* Overview section */}
           <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary/70">
               Overview
             </h2>
-            <Card className="border-border bg-card p-4">
+            <Card className="border-primary/10 bg-card/50 backdrop-blur-sm p-4 ring-1 ring-primary/5 shadow-lg">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
@@ -539,103 +557,50 @@ export function DAODashboard() {
             </Card>
           </div>
 
-          {/* DAO Selector */}
-          <div>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              DAOs
-            </h2>
-            <div className="space-y-1">
-              {Object.entries(daoDatabase).map(([key, dao]) => {
-                const proposals = daoProposals[key] || [];
-                const hasProposals = proposals.length > 0;
-                const isExpanded = expandedDAO === key;
-
-                return (
-                  <div key={key} className="space-y-1">
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        className={`flex-1 justify-start gap-2 ${
-                          selectedDAO === key
-                            ? "bg-primary/10 text-primary hover:bg-primary/15"
-                            : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
-                        }`}
-                        onClick={() => setSelectedDAO(key)}
-                      >
-                        <Circle
-                          className={`h-2 w-2 ${
-                            selectedDAO === key
-                              ? "fill-primary"
-                              : "fill-muted-foreground"
-                          }`}
-                        />
-                        <span className="flex-1 text-left text-sm">
-                          {dao.name}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            dao.overallScore >= 80
-                              ? "border-success/40 text-success"
-                              : dao.overallScore >= 70
-                              ? "border-primary/40 text-primary"
-                              : "border-warning/40 text-warning"
-                          }`}
-                        >
-                          {dao.overallScore}
-                        </Badge>
-                      </Button>
-                      {hasProposals && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className={`px-2 ${
-                            isExpanded
-                              ? "bg-primary/10 text-primary hover:bg-primary/15"
-                              : "text-muted-foreground hover:bg-accent/5 hover:text-foreground"
-                          }`}
-                          onClick={() =>
-                            setExpandedDAO(isExpanded ? null : key)
-                          }
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    {/* Proposals List */}
-                    {hasProposals && isExpanded && (
-                      <div className="ml-4 space-y-1 border-l-2 border-primary/20 pl-2">
-                        {proposals.map((proposal) => (
-                          <Link
-                            key={proposal.id}
-                            href={proposal.url}
-                            className="flex items-center gap-2 rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-primary/5 hover:text-primary transition-colors"
-                          >
-                            <ChevronRight className="h-3 w-3" />
-                            <span className="flex-1 truncate">
-                              {proposal.title}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </aside>
 
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main className="flex flex-1 flex-col overflow-hidden rounded-3xl border border-primary/10 bg-background/40 backdrop-blur-xl shadow-2xl shadow-primary/5 ring-1 ring-primary/5">
           <div className="flex-1 overflow-y-auto p-6">
             {/* Header with DAO name and score */}
             <div className="mb-6 flex items-start justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-foreground mb-4">
                   {selectedDAOData.name}
                 </h2>
-                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+
+                {/* DAO Selector Tabs */}
+                <div className="flex items-center gap-1 border-b border-border">
+                  {Object.entries(daoDatabase).map(([key, dao]) => (
+                    <button
+                      key={key}
+                      onClick={() => setSelectedDAO(key)}
+                      className={`group relative flex items-center gap-2 px-4 py-2.5 transition-all duration-200 ${
+                        selectedDAO === key
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="text-sm font-semibold">
+                        {dao.name.split(" ")[0]}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${
+                          selectedDAO === key
+                            ? "border-primary/40 text-primary"
+                            : "border-border text-muted-foreground group-hover:border-foreground/40 group-hover:text-foreground"
+                        }`}
+                      >
+                        {dao.overallScore}
+                      </Badge>
+                      {selectedDAO === key && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                   <span>
                     Stage {selectedDAOData.stage} •{" "}
                     {selectedDAOData.stage === 0
@@ -646,21 +611,20 @@ export function DAODashboard() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">
-                    Overall Health
-                  </p>
-                  <p className="text-4xl font-bold text-primary">
-                    {selectedDAOData.overallScore}
-                  </p>
-                </div>
+
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">
+                  Overall Health
+                </p>
+                <p className="text-4xl font-bold text-primary">
+                  {selectedDAOData.overallScore}
+                </p>
               </div>
             </div>
 
             {/* Key metrics row */}
             <div className="mb-6 grid grid-cols-4 gap-4">
-              <Card className="border-border bg-card p-4">
+              <Card className="border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 ring-1 ring-primary/5 shadow-lg hover:shadow-primary/10 hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Voting Rate</p>
@@ -668,10 +632,12 @@ export function DAODashboard() {
                       {selectedDAOData.dimensions.governance.votingRate}%
                     </p>
                   </div>
-                  <Vote className="h-8 w-8 text-primary/30" />
+                  <div className="rounded-xl bg-primary/10 p-2 ring-1 ring-primary/20">
+                    <Vote className="h-6 w-6 text-primary" />
+                  </div>
                 </div>
               </Card>
-              <Card className="border-border bg-card p-4">
+              <Card className="border-accent/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 ring-1 ring-accent/5 shadow-lg hover:shadow-accent/10 hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Treasury</p>
@@ -683,10 +649,12 @@ export function DAODashboard() {
                       B
                     </p>
                   </div>
-                  <DollarSign className="h-8 w-8 text-accent/30" />
+                  <div className="rounded-xl bg-accent/10 p-2 ring-1 ring-accent/20">
+                    <DollarSign className="h-6 w-6 text-accent" />
+                  </div>
                 </div>
               </Card>
-              <Card className="border-border bg-card p-4">
+              <Card className="border-success/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 ring-1 ring-success/5 shadow-lg hover:shadow-success/10 hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">Members</p>
@@ -697,10 +665,12 @@ export function DAODashboard() {
                       K
                     </p>
                   </div>
-                  <Users className="h-8 w-8 text-success/30" />
+                  <div className="rounded-xl bg-success/10 p-2 ring-1 ring-success/20">
+                    <Users className="h-6 w-6 text-success" />
+                  </div>
                 </div>
               </Card>
-              <Card className="border-border bg-card p-4">
+              <Card className="border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 ring-1 ring-primary/5 shadow-lg hover:shadow-primary/10 hover:scale-[1.02] transition-all duration-300">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs text-muted-foreground">TVL</p>
@@ -712,7 +682,9 @@ export function DAODashboard() {
                       B
                     </p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-primary/30" />
+                  <div className="rounded-xl bg-primary/10 p-2 ring-1 ring-primary/20">
+                    <TrendingUp className="h-6 w-6 text-primary" />
+                  </div>
                 </div>
               </Card>
             </div>
@@ -721,14 +693,14 @@ export function DAODashboard() {
             <div className="grid grid-cols-4 gap-6">
               {/* Recently Proposals - Left sidebar */}
               <div className="col-span-1">
-                <Card className="border-border bg-card p-4 h-full">
+                <Card className="border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 h-full ring-1 ring-primary/5 shadow-lg">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-foreground">
                       Recent Proposals
                     </h3>
                     {daoProposals[selectedDAO] &&
                       daoProposals[selectedDAO].length > 0 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs bg-primary/10 border-primary/20">
                           {daoProposals[selectedDAO].length}
                         </Badge>
                       )}
@@ -740,7 +712,7 @@ export function DAODashboard() {
                         <Link
                           key={proposal.id}
                           href={proposal.url}
-                          className="block rounded-lg border border-border bg-card/50 p-3 hover:bg-primary/5 hover:border-primary/30 transition-all duration-200"
+                          className="block rounded-xl border border-primary/10 bg-card/30 p-3 hover:bg-primary/10 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:scale-[1.02]"
                         >
                           <div className="flex items-start gap-2">
                             <FileText className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -759,7 +731,9 @@ export function DAODashboard() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                      <FileText className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                      <div className="rounded-2xl bg-primary/5 p-4 ring-1 ring-primary/10 mb-3">
+                        <FileText className="h-8 w-8 text-primary/40" />
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         No recent proposals
                       </p>
@@ -769,12 +743,12 @@ export function DAODashboard() {
               </div>
 
               {/* Dimension Analysis - Takes up 2 columns */}
-              <Card className="col-span-2 border-border bg-card p-6 relative">
+              <Card className="col-span-2 border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-6 relative ring-1 ring-primary/5 shadow-xl">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-foreground">
                     Dimension Analysis
                   </h3>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs bg-primary/10 border-primary/20 ring-1 ring-primary/5">
                     {selectedDimension
                       ? "Interactive Mode"
                       : "Click dimension to explore"}
@@ -806,7 +780,7 @@ export function DAODashboard() {
                         animation: "slideIn 0.5s ease-out",
                       }}
                     >
-                      <div className="rounded-lg bg-background/95 backdrop-blur-sm border-2 border-primary/30 shadow-lg p-4">
+                      <div className="rounded-2xl bg-background/95 backdrop-blur-md border-2 border-primary/30 shadow-2xl shadow-primary/20 p-4 ring-1 ring-primary/10">
                         {selectedDimension === "governance" && (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -821,7 +795,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Voting Rate
                                 </p>
@@ -833,7 +807,7 @@ export function DAODashboard() {
                                   %
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Nakamoto
                                 </p>
@@ -844,7 +818,7 @@ export function DAODashboard() {
                                   }
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Gini
                                 </p>
@@ -855,7 +829,7 @@ export function DAODashboard() {
                                   }
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Whale Conc.
                                 </p>
@@ -884,7 +858,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Size
                                 </p>
@@ -897,7 +871,7 @@ export function DAODashboard() {
                                   B
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Burn Rate
                                 </p>
@@ -906,7 +880,7 @@ export function DAODashboard() {
                                   %
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Runway
                                 </p>
@@ -914,7 +888,7 @@ export function DAODashboard() {
                                   {selectedDAOData.dimensions.treasury.runway}mo
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Diversification
                                 </p>
@@ -943,7 +917,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Proposer Conc.
                                 </p>
@@ -955,7 +929,7 @@ export function DAODashboard() {
                                   %
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Automation
                                 </p>
@@ -967,7 +941,7 @@ export function DAODashboard() {
                                   %
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2 col-span-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm col-span-2">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Multisig
                                 </p>
@@ -995,7 +969,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   DAU
                                 </p>
@@ -1003,7 +977,7 @@ export function DAODashboard() {
                                   {selectedDAOData.dimensions.community.dau.toLocaleString()}
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   WAU
                                 </p>
@@ -1011,7 +985,7 @@ export function DAODashboard() {
                                   {selectedDAOData.dimensions.community.wau.toLocaleString()}
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Retention
                                 </p>
@@ -1023,7 +997,7 @@ export function DAODashboard() {
                                   %
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Engagement
                                 </p>
@@ -1052,7 +1026,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Exec Time
                                 </p>
@@ -1064,7 +1038,7 @@ export function DAODashboard() {
                                   d
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Throughput
                                 </p>
@@ -1076,7 +1050,7 @@ export function DAODashboard() {
                                   /mo
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2 col-span-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm col-span-2">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Success Rate
                                 </p>
@@ -1105,7 +1079,7 @@ export function DAODashboard() {
                               </button>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   TVL
                                 </p>
@@ -1118,7 +1092,7 @@ export function DAODashboard() {
                                   B
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Revenue
                                 </p>
@@ -1131,7 +1105,7 @@ export function DAODashboard() {
                                   M
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Users
                                 </p>
@@ -1143,7 +1117,7 @@ export function DAODashboard() {
                                   K
                                 </p>
                               </div>
-                              <div className="rounded bg-card/50 border border-border p-2">
+                              <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-primary/10 p-2 ring-1 ring-primary/5 shadow-sm">
                                 <p className="text-xs text-muted-foreground mb-1">
                                   Security
                                 </p>
@@ -1183,12 +1157,14 @@ export function DAODashboard() {
 
               {/* Voter Analysis - Right sidebar */}
               <div className="col-span-1">
-                <Card className="border-border bg-card p-4 h-full">
+                <Card className="border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 h-full ring-1 ring-primary/5 shadow-lg">
                   <div className="mb-4 flex items-center justify-between">
                     <h3 className="text-sm font-semibold text-foreground">
                       Voter Analysis
                     </h3>
-                    <UserCheck className="h-4 w-4 text-primary" />
+                    <div className="rounded-lg bg-primary/10 p-1.5 ring-1 ring-primary/20">
+                      <UserCheck className="h-4 w-4 text-primary" />
+                    </div>
                   </div>
 
                   {/* Top Voters */}
@@ -1205,7 +1181,7 @@ export function DAODashboard() {
                         ].map((voter, idx) => (
                           <div
                             key={idx}
-                            className="flex items-center justify-between rounded-lg border border-border bg-card/50 p-2"
+                            className="flex items-center justify-between rounded-xl border border-primary/10 bg-card/30 p-2 ring-1 ring-primary/5 hover:bg-primary/5 hover:shadow-md transition-all duration-200"
                           >
                             <div className="flex items-center gap-2">
                               <Award
@@ -1294,7 +1270,7 @@ export function DAODashboard() {
 
             {/* Alerts section */}
             {selectedDAOData.alerts.length > 0 && (
-              <Card className="mt-6 border-border bg-card p-4">
+              <Card className="mt-6 border-primary/10 bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm p-4 ring-1 ring-primary/5 shadow-lg">
                 <h3 className="mb-3 text-sm font-semibold text-foreground">
                   Active Alerts
                 </h3>
@@ -1302,17 +1278,23 @@ export function DAODashboard() {
                   {selectedDAOData.alerts.map((alert, i) => (
                     <div
                       key={i}
-                      className={`flex items-start gap-3 rounded-lg border p-3 ${
+                      className={`flex items-start gap-3 rounded-xl border p-3 ring-1 backdrop-blur-sm transition-all duration-200 hover:shadow-md ${
                         alert.type === "warning"
-                          ? "border-warning/20 bg-warning/5"
-                          : "border-primary/20 bg-primary/5"
+                          ? "border-warning/20 bg-warning/5 ring-warning/10 hover:shadow-warning/10"
+                          : "border-primary/20 bg-primary/5 ring-primary/10 hover:shadow-primary/10"
                       }`}
                     >
-                      {alert.type === "warning" ? (
-                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                      ) : (
-                        <Activity className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      )}
+                      <div className={`rounded-lg p-1.5 ${
+                        alert.type === "warning"
+                          ? "bg-warning/10 ring-1 ring-warning/20"
+                          : "bg-primary/10 ring-1 ring-primary/20"
+                      }`}>
+                        {alert.type === "warning" ? (
+                          <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+                        ) : (
+                          <Activity className="h-4 w-4 shrink-0 text-primary" />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm text-foreground">
                           {alert.message}

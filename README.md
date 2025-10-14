@@ -62,3 +62,63 @@ Ensure the response is a pure JSON string that can be directly parsed by JavaScr
 
 - [Snapshot API](https://docs.snapshot.box/tools/api): For seamless DAO proposal submission and voting.
 - Gemini AI: For detailed, long-context proposal analysis.
+
+## Project Structure
+
+```
+magi/
+├── frontend/          # Next.js frontend application
+│   ├── src/
+│   │   ├── app/      # Next.js app router pages
+│   │   ├── components/
+│   │   │   ├── dao-dashboard/   # DAO health monitoring dashboard
+│   │   │   └── magi/            # AI-powered proposal analysis UI
+│   │   └── utils/    # Utility functions (aiService, etc.)
+│   ├── public/       # Static assets
+│   └── ...           # Configuration files
+├── todo/             # Detailed task documentation
+└── *.md              # Project documentation
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+### Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/chyyynh/magi.git
+cd magi
+```
+
+2. Navigate to frontend directory and install dependencies:
+```bash
+cd frontend
+pnpm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.local.example .env.local
+# Edit .env.local with your API keys
+```
+
+4. Run the development server:
+```bash
+pnpm dev
+```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Available Scripts
+
+```bash
+pnpm dev       # Start development server
+pnpm build     # Build for production
+pnpm start     # Start production server
+pnpm lint      # Run ESLint
+```

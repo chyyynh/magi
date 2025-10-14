@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { animate, stagger } from "animejs"
 
 interface DimensionChartProps {
   data: {
@@ -17,6 +18,10 @@ interface DimensionChartProps {
 
 export function DimensionChart({ data, onDimensionClick, selectedDimension }: DimensionChartProps) {
   const [hoveredDimension, setHoveredDimension] = useState<string | null>(null)
+  const [animatedScores, setAnimatedScores] = useState<Record<string, number>>({})
+  const svgRef = useRef<SVGSVGElement>(null)
+  const polygonRef = useRef<SVGPolygonElement>(null)
+  const circleGridRef = useRef<SVGGElement>(null)
 
   const dimensions = [
     { name: "Governance", short: "GOV", key: "governance", score: data.governance.score, angle: 0 },
@@ -31,6 +36,62 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
   const center = size / 2
   const maxRadius = size / 2 - 50
 
+  // Initialize animated scores on mount
+  useEffect(() => {
+    const initialScores: Record<string, number> = {}
+    dimensions.forEach(d => {
+      initialScores[d.key] = 0
+    })
+    setAnimatedScores(initialScores)
+
+    // Animate grid circles entrance
+    if (circleGridRef.current) {
+      animate(circleGridRef.current.children, {
+        scale: [0, 1],
+        opacity: [0, 1],
+        delay: stagger(100),
+        duration: 800,
+        easing: 'outElastic(1, .6)'
+      })
+    }
+
+    // Animate scores from 0 to target values
+    const scoreAnimations: Record<string, number> = {}
+    dimensions.forEach(d => {
+      scoreAnimations[d.key] = 0
+    })
+
+    animate(scoreAnimations, {
+      ...dimensions.reduce((acc, d) => {
+        acc[d.key] = d.score
+        return acc
+      }, {} as Record<string, number>),
+      duration: 1500,
+      delay: 500,
+      easing: 'outCubic',
+      onUpdate: () => {
+        setAnimatedScores({ ...scoreAnimations })
+      }
+    })
+  }, [])
+
+  // Animate dimension selection
+  useEffect(() => {
+    if (selectedDimension) {
+      const dimensionIndex = dimensions.findIndex(d => d.key === selectedDimension)
+      if (dimensionIndex !== -1) {
+        const element = document.querySelector(`[data-dimension="${selectedDimension}"]`)
+        if (element) {
+          animate(element, {
+            scale: [1, 1.3, 1],
+            duration: 600,
+            easing: 'outElastic(1, .5)'
+          })
+        }
+      }
+    }
+  }, [selectedDimension])
+
   const getPoint = (angle: number, distance: number) => {
     const radian = ((angle - 90) * Math.PI) / 180
     return {
@@ -41,13 +102,14 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
 
   const points = dimensions
     .map((d) => {
-      const point = getPoint(d.angle, (d.score / 100) * maxRadius)
+      const score = animatedScores[d.key] ?? d.score
+      const point = getPoint(d.angle, (score / 100) * maxRadius)
       return `${point.x},${point.y}`
     })
     .join(" ")
 
   return (
-    <svg width={size} height={size} className="mx-auto">
+    <svg ref={svgRef} width={size} height={size} className="mx-auto">
       <defs>
         <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="oklch(0.65 0.25 195)" stopOpacity="0" />
@@ -60,18 +122,21 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
         </radialGradient>
       </defs>
 
-      {[20, 40, 60, 80, 100].map((percent) => (
-        <circle
-          key={percent}
-          cx={center}
-          cy={center}
-          r={(percent / 100) * maxRadius}
-          fill="none"
-          stroke="oklch(0.18 0.02 240)"
-          strokeWidth="1"
-          opacity={percent === 100 ? 0.5 : 0.2}
-        />
-      ))}
+      <g ref={circleGridRef}>
+        {[20, 40, 60, 80, 100].map((percent) => (
+          <circle
+            key={percent}
+            cx={center}
+            cy={center}
+            r={(percent / 100) * maxRadius}
+            fill="none"
+            stroke="oklch(0.18 0.02 240)"
+            strokeWidth="1"
+            opacity={percent === 100 ? 0.5 : 0.2}
+            style={{ transformOrigin: `${center}px ${center}px` }}
+          />
+        ))}
+      </g>
 
       {dimensions.map((d) => {
         const point = getPoint(d.angle, maxRadius)
@@ -100,10 +165,17 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
         />
       </g>
 
-      <polygon points={points} fill="url(#dataGradient)" stroke="oklch(0.65 0.25 195)" strokeWidth="2" />
+      <polygon
+        ref={polygonRef}
+        points={points}
+        fill="url(#dataGradient)"
+        stroke="oklch(0.65 0.25 195)"
+        strokeWidth="2"
+      />
 
       {dimensions.map((d) => {
-        const point = getPoint(d.angle, (d.score / 100) * maxRadius)
+        const score = animatedScores[d.key] ?? d.score
+        const point = getPoint(d.angle, (score / 100) * maxRadius)
         const isSelected = selectedDimension === d.key
         const isHovered = hoveredDimension === d.key
         const isActive = isSelected || isHovered
@@ -111,8 +183,23 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
         return (
           <g
             key={d.name}
-            style={{ cursor: onDimensionClick ? 'pointer' : 'default' }}
-            onMouseEnter={() => setHoveredDimension(d.key)}
+            data-dimension={d.key}
+            style={{
+              cursor: onDimensionClick ? 'pointer' : 'default',
+              transformOrigin: `${point.x}px ${point.y}px`
+            }}
+            onMouseEnter={() => {
+              setHoveredDimension(d.key)
+              // Pulse animation on hover
+              const element = document.querySelector(`[data-dimension="${d.key}"]`)
+              if (element) {
+                animate(element, {
+                  scale: [1, 1.15, 1],
+                  duration: 400,
+                  easing: 'outQuad'
+                })
+              }
+            }}
             onMouseLeave={() => setHoveredDimension(null)}
             onClick={() => onDimensionClick?.(d.key)}
           >
@@ -142,6 +229,7 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
 
       {dimensions.map((d) => {
         const labelPoint = getPoint(d.angle, maxRadius + 30)
+        const score = animatedScores[d.key] ?? d.score
         const isSelected = selectedDimension === d.key
         const isHovered = hoveredDimension === d.key
         const isActive = isSelected || isHovered
@@ -149,8 +237,22 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
         return (
           <g
             key={d.name}
-            style={{ cursor: onDimensionClick ? 'pointer' : 'default' }}
-            onMouseEnter={() => setHoveredDimension(d.key)}
+            data-label={d.key}
+            style={{
+              cursor: onDimensionClick ? 'pointer' : 'default',
+              transformOrigin: `${labelPoint.x}px ${labelPoint.y}px`
+            }}
+            onMouseEnter={() => {
+              setHoveredDimension(d.key)
+              const element = document.querySelector(`[data-label="${d.key}"]`)
+              if (element) {
+                animate(element, {
+                  scale: [1, 1.1, 1],
+                  duration: 400,
+                  easing: 'outQuad'
+                })
+              }
+            }}
             onMouseLeave={() => setHoveredDimension(null)}
             onClick={() => onDimensionClick?.(d.key)}
           >
@@ -173,7 +275,7 @@ export function DimensionChart({ data, onDimensionClick, selectedDimension }: Di
                 transition: 'all 0.2s ease'
               }}
             >
-              {d.score}
+              {Math.round(score)}
             </text>
           </g>
         )
