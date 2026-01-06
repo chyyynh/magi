@@ -27,28 +27,28 @@ export interface ChatMessage {
   timestamp: number;
 }
 
-// Agent configurations
+// Agent configurations - Cyberpunk Monochrome
 export const AGENT_CONFIGS: Record<AgentId, AgentConfig> = {
   melchior: {
     id: 'melchior',
     name: 'OpenAI',
-    displayName: 'MELCHIOR·1',
+    displayName: 'MELCHIOR-01',
     provider: 'openai',
-    color: '#FF6600',
+    color: '#FFFFFF',
   },
   balthasar: {
     id: 'balthasar',
     name: 'Claude',
-    displayName: 'BALTHASAR·2',
+    displayName: 'BALTHASAR-02',
     provider: 'anthropic',
-    color: '#7C3AED',
+    color: '#CCCCCC',
   },
   casper: {
     id: 'casper',
     name: 'Gemini',
-    displayName: 'CASPER·3',
+    displayName: 'CASPER-03',
     provider: 'google',
-    color: '#10B981',
+    color: '#999999',
   },
 };
 
