@@ -1,12 +1,6 @@
 "use client";
 
 import {
-  Conversation,
-  ConversationContent,
-  ConversationScrollButton,
-} from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
-import {
   PromptInput,
   PromptInputActionAddAttachments,
   PromptInputActionMenu,
@@ -17,53 +11,26 @@ import {
   PromptInputBody,
   PromptInputButton,
   type PromptInputMessage,
-  PromptInputModelSelect,
-  PromptInputModelSelectContent,
-  PromptInputModelSelectItem,
-  PromptInputModelSelectTrigger,
-  PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
-import { Actions, Action } from "@/components/ai-elements/actions";
-import { Fragment, useState } from "react";
+import { useState, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { Response } from "@/components/ai-elements/response";
-import { GlobeIcon, RefreshCcwIcon, CopyIcon } from "lucide-react";
-import {
-  Source,
-  Sources,
-  SourcesContent,
-  SourcesTrigger,
-} from "@/components/ai-elements/sources";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "@/components/ai-elements/reasoning";
-import { Loader } from "@/components/ai-elements/loader";
-
-const models = [
-  {
-    name: "GPT 4o",
-    value: "openai/gpt-4o",
-  },
-  {
-    name: "Deepseek R1",
-    value: "deepseek/deepseek-r1",
-  },
-];
+import { GlobeIcon } from "lucide-react";
+import { type AgentId, AGENT_CONFIGS } from "@/types";
 
 interface ChatbotProps {
   proposalContext?: string | null;
+  agentId?: AgentId;
 }
 
-export default function Chatbot({ proposalContext }: ChatbotProps) {
+export default function Chatbot({ proposalContext, agentId = "melchior" }: ChatbotProps) {
+  const config = AGENT_CONFIGS[agentId];
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -71,7 +38,10 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
     }),
   });
 
-  console.log("Chat state:", { messages, status });
+  // Clear messages when agent changes
+  useEffect(() => {
+    setMessages([]);
+  }, [agentId, setMessages]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -81,11 +51,6 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
       return;
     }
 
-    console.log('FloatingChatbot sending message with context:', {
-      hasContext: !!proposalContext,
-      contextPreview: proposalContext ? proposalContext.substring(0, 100) + '...' : 'None'
-    });
-
     sendMessage(
       {
         text: message.text || "Sent with attachments",
@@ -93,7 +58,7 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
       },
       {
         body: {
-          model: model,
+          agentId: agentId,
           webSearch: webSearch,
           proposalContext: proposalContext,
         },
@@ -105,13 +70,22 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
   return (
     <div className="h-full">
       <div className="flex flex-col h-full p-4">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-white">AI Chat</h3>
+        {/* Agent Header */}
+        <div className="mb-4 flex items-center gap-2">
+          <div
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: config.color }}
+          />
+          <h3 className="text-sm font-mono font-semibold" style={{ color: config.color }}>
+            {config.displayName} - {config.name}
+          </h3>
         </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-4 hide-scrollbar">
           {messages.length === 0 ? (
-            <div className=" text-sm text-white">
-              Ask anything about the proposal...
+            <div className="text-sm text-gray-500 font-mono">
+              Chat with {config.name} agent...
             </div>
           ) : (
             messages.map((message) => (
@@ -122,18 +96,24 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
                 }`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  className={`max-w-[85%] rounded-lg px-3 py-2 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
+                      ? "bg-white/10 text-white"
+                      : "border"
                   }`}
+                  style={{
+                    borderColor: message.role === "assistant" ? `${config.color}50` : undefined,
+                    backgroundColor: message.role === "assistant" ? `${config.color}10` : undefined,
+                  }}
                 >
                   {message.role === "user" ? (
-                    message.parts
-                      ?.map((part) =>
-                        part.type === "text" ? part.text : null
-                      )
-                      .join("") || "No content"
+                    <p className="text-sm">
+                      {message.parts
+                        ?.map((part) =>
+                          part.type === "text" ? part.text : null
+                        )
+                        .join("") || "No content"}
+                    </p>
                   ) : (
                     <Response className="prose prose-sm max-w-none prose-invert">
                       {message.parts
@@ -149,17 +129,21 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
           )}
           {status === "streaming" && (
             <div className="flex justify-start">
-              <div className="bg-muted text-foreground rounded-lg px-4 py-2">
-                <div className="flex items-center space-x-2">
-                  <div className="animate-pulse">●</div>
-                  <div className="animate-pulse delay-100">●</div>
-                  <div className="animate-pulse delay-200">●</div>
+              <div
+                className="rounded-lg px-3 py-2 border"
+                style={{ borderColor: `${config.color}50`, backgroundColor: `${config.color}10` }}
+              >
+                <div className="flex items-center space-x-1" style={{ color: config.color }}>
+                  <div className="animate-pulse text-sm">●</div>
+                  <div className="animate-pulse text-sm" style={{ animationDelay: "0.1s" }}>●</div>
+                  <div className="animate-pulse text-sm" style={{ animationDelay: "0.2s" }}>●</div>
                 </div>
               </div>
             </div>
           )}
         </div>
 
+        {/* Input */}
         <PromptInput
           onSubmit={handleSubmit}
           className="mt-4"
@@ -173,6 +157,7 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
             <PromptInputTextarea
               onChange={(e) => setInput(e.target.value)}
               value={input}
+              placeholder={`Message ${config.name}...`}
             />
           </PromptInputBody>
           <PromptInputToolbar>
@@ -190,26 +175,6 @@ export default function Chatbot({ proposalContext }: ChatbotProps) {
                 <GlobeIcon size={16} />
                 <span>Search</span>
               </PromptInputButton>
-              <PromptInputModelSelect
-                onValueChange={(value) => {
-                  setModel(value);
-                }}
-                value={model}
-              >
-                <PromptInputModelSelectTrigger>
-                  <PromptInputModelSelectValue />
-                </PromptInputModelSelectTrigger>
-                <PromptInputModelSelectContent>
-                  {models.map((model) => (
-                    <PromptInputModelSelectItem
-                      key={model.value}
-                      value={model.value}
-                    >
-                      {model.name}
-                    </PromptInputModelSelectItem>
-                  ))}
-                </PromptInputModelSelectContent>
-              </PromptInputModelSelect>
             </PromptInputTools>
             <PromptInputSubmit disabled={!input && !status} status={status} />
           </PromptInputToolbar>

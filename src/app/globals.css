@@ -46,6 +46,14 @@
 }
 
 :root {
+  /* MAGI Agent Colors */
+  --magi-orange: #FF6600;
+  --magi-green: #00FF66;
+  --magi-red: #FF4444;
+  --melchior-color: #FF6600;
+  --balthasar-color: #7C3AED;
+  --casper-color: #10B981;
+
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.1 0 0);
   --card: oklch(1 0 0);
@@ -134,4 +142,60 @@
 .hide-scrollbar {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+}
+
+/* MAGI Agent Animations */
+@keyframes magi-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes magi-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--agent-color, #FF6600); }
+  50% { box-shadow: 0 0 20px var(--agent-color, #FF6600); }
+}
+
+@keyframes magi-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.magi-processing {
+  animation: magi-blink 0.5s ease-in-out infinite;
+}
+
+.magi-active {
+  animation: magi-glow 2s ease-in-out infinite;
+}
+
+.magi-pulse {
+  animation: magi-pulse 1.5s ease-in-out infinite;
+}
+
+/* Agent-specific border colors */
+.border-melchior {
+  border-color: var(--melchior-color);
+}
+
+.border-balthasar {
+  border-color: var(--balthasar-color);
+}
+
+.border-casper {
+  border-color: var(--casper-color);
+}
+
+/* Scanline effect for terminal aesthetic */
+.magi-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.1) 2px,
+    rgba(0, 0, 0, 0.1) 4px
+  );
+  pointer-events: none;
 }

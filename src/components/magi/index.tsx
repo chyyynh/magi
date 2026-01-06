@@ -2,10 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import useIsMobile from "@/hooks/useIsMobile";
-import PropUI from "@/components/common/PropUI";
-import { type LayoutProps, type Proposal } from "@/types";
+import {
+  type AgentId,
+  type AgentState,
+  AGENT_CONFIGS,
+  AGENT_IDS,
+  createInitialAgentStates,
+} from "@/types";
 import { DesktopLayout, MobileLayout } from "./layout/layout";
-import FloatingChatbot from "./chat/FloatingChatbot";
 
 import { Noto_Serif_TC } from "next/font/google";
 
@@ -19,137 +23,137 @@ const notoSansTC = Noto_Serif_TC({
 export default function MagiInterface() {
   const isMobile = useIsMobile();
 
-  // State management for proposal and decisions
-  const [proposal, setProposal] = useState<Proposal | null>(null);
-  const [geminiDecisionLoading, setGeminiDecisionLoading] = useState(false);
-  const [geminiDecision, setGeminiDecision] = useState<string | null>(null);
-  const [proposalContext, setProposalContext] = useState<string | null>(null);
+  // Multi-agent state management
+  const [agentStates, setAgentStates] = useState<Record<AgentId, AgentState>>(
+    createInitialAgentStates()
+  );
+  const [currentTask, setCurrentTask] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
-  // Callback for ChatBot to update parent state
-  const handleProposalLoaded = useCallback(
-    (
-      loadedProposal: Proposal | null,
-      loading: boolean,
-      decision: string | null
-    ) => {
-      setProposal(loadedProposal);
-      setGeminiDecisionLoading(loading);
-      setGeminiDecision(decision);
+  // Update individual agent state
+  const updateAgentState = useCallback(
+    (agentId: AgentId, update: Partial<AgentState>) => {
+      setAgentStates((prev) => ({
+        ...prev,
+        [agentId]: { ...prev[agentId], ...update },
+      }));
     },
     []
   );
 
-  // Callback for updating proposal context for chatbot
-  const handleProposalContextUpdate = useCallback(
-    (context: string | null) => {
-      console.log('MagiInterface received context update:', {
-        hasContext: !!context,
-        contextLength: context?.length || 0
+  // Execute task on all agents
+  const executeTask = useCallback(
+    async (task: string) => {
+      setCurrentTask(task);
+      setIsExecuting(true);
+
+      // Set all agents to processing
+      AGENT_IDS.forEach((id) => {
+        updateAgentState(id, {
+          status: "processing",
+          response: null,
+          error: null,
+          startTime: Date.now(),
+          endTime: null,
+        });
       });
-      setProposalContext(context);
+
+      // Simulate agent responses (will be replaced with actual API calls)
+      // For now, just show the processing state
+      setTimeout(() => {
+        AGENT_IDS.forEach((id, index) => {
+          setTimeout(() => {
+            updateAgentState(id, {
+              status: "complete",
+              response: `[${AGENT_CONFIGS[id].name}] Response to: "${task}"\n\nThis is a placeholder response. Connect your ${AGENT_CONFIGS[id].name} agent SDK to enable real responses.`,
+              endTime: Date.now(),
+            });
+          }, (index + 1) * 500); // Stagger completions
+        });
+        setTimeout(() => setIsExecuting(false), 2000);
+      }, 500);
     },
-    []
+    [updateAgentState]
   );
 
-  const [, /*blink*/ setBlinking] = useState(false);
-  const [bgColorBalthasar, setBgColorBalthasar] = useState("#FF6600");
-  const [bgColorCasper, setBgColorCasper] = useState("#FF6600");
-  const [bgColorMelchior, setBgColorMelchior] = useState("#FF6600");
+  // Reset all agents
+  const resetAgents = useCallback(() => {
+    setAgentStates(createInitialAgentStates());
+    setCurrentTask(null);
+    setIsExecuting(false);
+  }, []);
 
-  useEffect(() => {
-    const finalColor =
-      geminiDecision === "For"
-        ? "#00FF66"
-        : geminiDecision === "Against"
-        ? "#FF4444"
-        : "#FF6600";
+  // Get background color for each agent based on state
+  const getAgentColor = (agentId: AgentId): string => {
+    const state = agentStates[agentId];
+    const config = AGENT_CONFIGS[agentId];
 
-    setBgColorBalthasar(finalColor);
-    setBgColorCasper(finalColor);
-    setBgColorMelchior(finalColor);
-  }, [geminiDecision]);
-
-  useEffect(() => {
-    if (geminiDecisionLoading) {
-      setBlinking(true);
-      const intervalBalthasar = setInterval(
-        () =>
-          setBgColorBalthasar((prev) =>
-            prev === "#FF6600" ? "#000000" : "#FF6600"
-          ),
-        150
-      );
-      const intervalCasper = setInterval(
-        () =>
-          setBgColorCasper((prev) =>
-            prev === "#FF6600" ? "#000000" : "#FF6600"
-          ),
-        250
-      );
-      const intervalMelchior = setInterval(
-        () =>
-          setBgColorMelchior((prev) =>
-            prev === "#FF6600" ? "#000000" : "#FF6600"
-          ),
-        350
-      );
-      return () => {
-        clearInterval(intervalBalthasar);
-        clearInterval(intervalCasper);
-        clearInterval(intervalMelchior);
-      };
-    } else {
-      setBlinking(false);
-      const finalColor =
-        geminiDecision === "For"
-          ? "#00FF66"
-          : geminiDecision === "Against"
-          ? "#FF4444"
-          : "#FF6600";
-      setBgColorBalthasar(finalColor);
-      setBgColorCasper(finalColor);
-      setBgColorMelchior(finalColor);
+    if (state.status === "processing") {
+      return config.color;
     }
-  }, [geminiDecisionLoading, geminiDecision]);
+    if (state.status === "complete") {
+      return config.color;
+    }
+    if (state.status === "error") {
+      return "#FF4444";
+    }
+    return config.color;
+  };
+
+  // Blinking effect for processing agents
+  const [blinkStates, setBlinkStates] = useState<Record<AgentId, boolean>>({
+    melchior: false,
+    balthasar: false,
+    casper: false,
+  });
+
+  useEffect(() => {
+    const intervals: NodeJS.Timeout[] = [];
+
+    AGENT_IDS.forEach((id, index) => {
+      if (agentStates[id].status === "processing") {
+        const interval = setInterval(() => {
+          setBlinkStates((prev) => ({ ...prev, [id]: !prev[id] }));
+        }, 150 + index * 100);
+        intervals.push(interval);
+      } else {
+        setBlinkStates((prev) => ({ ...prev, [id]: false }));
+      }
+    });
+
+    return () => intervals.forEach(clearInterval);
+  }, [agentStates]);
+
+  // Get display color (with blink effect)
+  const getDisplayColor = (agentId: AgentId): string => {
+    if (agentStates[agentId].status === "processing") {
+      return blinkStates[agentId] ? "#000000" : AGENT_CONFIGS[agentId].color;
+    }
+    return getAgentColor(agentId);
+  };
 
   const decisionText = {
     For: "支持",
     Against: "反對",
   };
 
-  // Prepare props for layout components
-  const layoutProps: LayoutProps = {
-    proposal, // Pass state
-    geminiDecisionLoading, // Pass state
-    geminiDecision, // Pass state
-    bgColorBalthasar,
-    bgColorCasper,
-    bgColorMelchior,
+  // Layout props
+  const layoutProps = {
+    agentStates,
+    currentTask,
+    isExecuting,
+    executeTask,
+    resetAgents,
+    bgColorBalthasar: getDisplayColor("balthasar"),
+    bgColorCasper: getDisplayColor("casper"),
+    bgColorMelchior: getDisplayColor("melchior"),
     decisionText,
     notoSansTCClassName: notoSansTC.className,
-    onProposalLoaded: handleProposalLoaded, // Pass callback
-    onProposalContextUpdate: handleProposalContextUpdate, // Pass context callback
-    proposalContext, // Pass proposal context for chatbot
   };
+
   if (isMobile) {
     return <MobileLayout {...layoutProps} />;
   } else {
-    return (
-      <div className="flex h-full relative">
-        <div className="w-1/4">
-          <PropUI
-            content={proposal?.body}
-            choices={proposal?.choices}
-            onProposalLoaded={handleProposalLoaded}
-            onProposalContextUpdate={handleProposalContextUpdate}
-          />
-        </div>
-        <div className="flex-1">
-          <DesktopLayout {...layoutProps} />
-        </div>
-
-        <FloatingChatbot proposalContext={proposalContext} />
-      </div>
-    );
+    return <DesktopLayout {...layoutProps} />;
   }
 }

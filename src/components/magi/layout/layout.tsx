@@ -1,113 +1,273 @@
+"use client";
+
 import { type LayoutProps } from "@/types";
-import ClippedRecCas from "../core/ClippedRecCas";
-import ClippedRecMel from "../core/ClippedRecMel";
-import ClippedRecBal from "../core/ClippedRecBal";
-import PropUI from "@/components/common/PropUI";
-import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+import { AGENT_IDS, AGENT_CONFIGS } from "@/types";
+import MagiSystem from "../core/MagiSystem";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Send, Loader2 } from "lucide-react";
-import { Response } from "@/components/ai-elements/response";
+import { Send, RotateCcw } from "lucide-react";
+import { useState } from "react";
 
 // --- Desktop Layout Component ---
-// Desktop layout remains largely the same, but receives props differently if needed
 export const DesktopLayout: React.FC<LayoutProps> = ({
-  proposal, // Use proposal state
-  geminiDecisionLoading,
-  geminiDecision,
+  agentStates,
+  currentTask,
+  isExecuting,
+  executeTask,
+  resetAgents,
   bgColorBalthasar,
   bgColorCasper,
   bgColorMelchior,
-  decisionText,
   notoSansTCClassName,
-  // onProposalLoaded is not used directly here but passed for consistency
 }) => {
-  const proposalID = proposal?.id;
-  const title = proposal?.title;
+  const [question, setQuestion] = useState("");
+
+  const handleSubmit = () => {
+    if (question.trim()) {
+      executeTask(question.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  const anyProcessing = AGENT_IDS.some(
+    (id) => agentStates[id].status === "processing"
+  );
+  const allComplete = AGENT_IDS.every(
+    (id) => agentStates[id].status === "complete"
+  );
 
   return (
-    <div className="flex flex-col h-full bg-black font-mono text-sm overflow-hidden relative">
-      {/* Fixed Header section */}
-      <div className="px-10 py-4 z-10 relative">
-        <div className="flex items-center justify-between gap-4 text-[#FF6600]">
-          <div
-            className={`${notoSansTCClassName} text-8xl font-bold inline-block`}
-          >
-            提 訴
-          </div>
-          <div
-            className={`${notoSansTCClassName} text-8xl font-bold inline-block`}
-          >
-            決 議
-          </div>
-        </div>
-        <div className="px-2 mt-4 flex items-center justify-between text-[#FF6600]">
-          <div className={`text-4xl font-bold inline-block`}>Code: 666</div>
-        </div>
-        <div className="px-2 mt-4 flex items-center justify-between text-[#FF6600]">
-          <div className="flex flex-col text-xs">
-            <span>Proposal ID: {proposalID || "N/A"}</span>
-            <span>Title: {title || "No proposal loaded"}</span>
-          </div>
-        </div>
+    <div className="relative h-full bg-black font-mono text-sm overflow-hidden">
+      {/* Center - MAGI System */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <MagiSystem
+          colorBalthasar={bgColorBalthasar}
+          colorCasper={bgColorCasper}
+          colorMelchior={bgColorMelchior}
+          contentBalthasar={
+            <div className="text-center">
+              <div className="text-black text-xl font-black tracking-wider">BALTHASAR·2</div>
+              <div className="text-black/60 text-sm mt-1">Claude</div>
+            </div>
+          }
+          contentCasper={
+            <div className="text-center">
+              <div className="text-black text-xl font-black tracking-wider">CASPER·3</div>
+              <div className="text-black/60 text-sm mt-1">Gemini</div>
+            </div>
+          }
+          contentMelchior={
+            <div className="text-center">
+              <div className="text-black text-xl font-black tracking-wider">MELCHIOR·1</div>
+              <div className="text-black/60 text-sm mt-1">OpenAI</div>
+            </div>
+          }
+        />
       </div>
 
-      {/* Main MAGI system display */}
-      <div className="absolute inset-0 p-4 flex justify-center z-20">
-        <div className="relative w-full max-w-3xl h-[400px]">
-          {/* BALTHASAR */}
-          <div className="absolute top-0 left-[50%] transform -translate-x-1/2 h-32">
-            <ClippedRecBal color={bgColorBalthasar}>
-              <div className="text-black text-xl font-black">BALTHASAR·2</div>
-            </ClippedRecBal>
+      {/* Top Bar - Floating */}
+      <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
+        {/* Top Left - Title */}
+        <div className="pointer-events-auto bg-black/60 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className={`${notoSansTCClassName} text-2xl font-bold text-[#FF6600]`}>
+              MAGI
+            </div>
+            <div className="h-6 w-px bg-[#FF6600]/30" />
+            <div className="text-xs text-gray-500">
+              <div>SUPER-COMPUTER</div>
+              <div>SYSTEM</div>
+            </div>
           </div>
+        </div>
 
-          {/* Decision Text Display */}
-          <div className="absolute bottom-35 right-0 flex items-center justify-center z-20">
-            {!geminiDecisionLoading && geminiDecision && (
-              <div className="p-0.5 border-1 border-[#FF6600]">
-                <div
-                  className={`${notoSansTCClassName} p-2 border-1 items-center text-4xl border-[#FF6600]`}
-                  style={{ color: bgColorBalthasar }}
-                >
-                  {decisionText[geminiDecision as keyof typeof decisionText] ||
-                    "未知"}
+        {/* Top Right - Agent Indicators */}
+        <div className="pointer-events-auto bg-black/60 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-4">
+            {AGENT_IDS.map((agentId) => {
+              const config = AGENT_CONFIGS[agentId];
+              const state = agentStates[agentId];
+              return (
+                <div key={agentId} className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      state.status === "processing" ? "animate-pulse" : ""
+                    }`}
+                    style={{ backgroundColor: config.color }}
+                  />
+                  <span className="text-xs" style={{ color: config.color }}>
+                    {config.displayName.split("·")[0]}
+                  </span>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* CASPER */}
-          <div className="absolute bottom-0 left-0 h-32">
-            <ClippedRecCas color={bgColorCasper}>
-              <div className="text-black text-xl font-black">CASPER·3</div>
-            </ClippedRecCas>
-          </div>
-
-          {/* MELCHIOR */}
-          <div className="absolute bottom-0 right-0 h-32">
-            <ClippedRecMel color={bgColorMelchior}>
-              <div className="text-black text-xl font-black">MELCHIOR·1</div>
-            </ClippedRecMel>
-          </div>
-
-          {/* MAGI center node */}
-          <div
-            className={`${notoSansTCClassName} absolute top-[80%] left-[50%] transform -translate-x-1/2 text-[#FF6600] font-bold text-2xl`}
-          >
-            MAGI
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Fixed footer */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 text-[#00FF66] text-xs z-30">
-        <div className="flex justify-between items-center h-[42px]">
-          <span>MAGI SYSTEM v0.1</span>
-          <span className={geminiDecisionLoading ? "opacity-100" : "opacity-0"}>
-            PROCESSING DATA
-          </span>
+      {/* Left Panel - Floating Question Input */}
+      <div className="absolute left-4 top-24 bottom-20 w-72 pointer-events-auto">
+        <div className="h-full bg-black/60 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg p-4 flex flex-col">
+          <div className="mb-4">
+            <div className={`${notoSansTCClassName} text-lg text-[#FF6600] mb-1`}>
+              提問
+            </div>
+            <p className="text-xs text-gray-500">
+              有什麼需要決定的事？
+            </p>
+          </div>
+
+          <Textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="輸入你的問題..."
+            disabled={isExecuting}
+            rows={4}
+            className="bg-black/50 border-[#FF6600]/30 text-white resize-none focus:border-[#FF6600] mb-3"
+          />
+
+          <Button
+            onClick={handleSubmit}
+            disabled={isExecuting || !question.trim()}
+            className="w-full bg-[#FF6600] hover:bg-[#FF6600]/80 text-black font-bold"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            詢問 MAGI
+          </Button>
+
+          {currentTask && (
+            <div className="mt-4 p-3 bg-black/50 border border-[#FF6600]/20 rounded">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500">目前問題</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetAgents}
+                  className="h-5 w-5 p-0 text-gray-500 hover:text-white"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                </Button>
+              </div>
+              <p className="text-xs text-[#FF6600] leading-relaxed">{currentTask}</p>
+            </div>
+          )}
+
+          {/* Agent Status */}
+          <div className="mt-auto pt-4 border-t border-[#FF6600]/20">
+            <div className="text-xs text-gray-600 mb-2">AGENT STATUS</div>
+            {AGENT_IDS.map((agentId) => {
+              const config = AGENT_CONFIGS[agentId];
+              const state = agentStates[agentId];
+              return (
+                <div key={agentId} className="flex items-center gap-2 py-1.5">
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      state.status === "processing" ? "animate-pulse" : ""
+                    }`}
+                    style={{ backgroundColor: config.color }}
+                  />
+                  <span className="text-xs" style={{ color: config.color }}>
+                    {config.displayName}
+                  </span>
+                  <span className="text-[10px] text-gray-600 ml-auto uppercase tracking-wider">
+                    {state.status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Floating Results */}
+      <div className="absolute right-4 top-24 bottom-20 w-80 pointer-events-auto">
+        <div className="h-full bg-black/60 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-[#FF6600]/20">
+            <div className={`${notoSansTCClassName} text-lg text-[#FF6600]`}>
+              分析結果
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 hide-scrollbar">
+            {AGENT_IDS.map((agentId) => {
+              const config = AGENT_CONFIGS[agentId];
+              const state = agentStates[agentId];
+
+              return (
+                <div
+                  key={agentId}
+                  className="bg-black/40 border rounded-lg overflow-hidden"
+                  style={{ borderColor: `${config.color}40` }}
+                >
+                  <div
+                    className="px-3 py-2 flex items-center gap-2 border-b"
+                    style={{
+                      backgroundColor: `${config.color}10`,
+                      borderColor: `${config.color}20`
+                    }}
+                  >
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        state.status === "processing" ? "animate-pulse" : ""
+                      }`}
+                      style={{ backgroundColor: config.color }}
+                    />
+                    <span className="text-sm font-bold" style={{ color: config.color }}>
+                      {config.displayName}
+                    </span>
+                    <span className="text-[10px] text-gray-500 ml-auto">
+                      {config.name}
+                    </span>
+                  </div>
+
+                  <div className="p-3 min-h-[70px]">
+                    {state.status === "idle" && (
+                      <span className="text-gray-600 text-xs">等待提問...</span>
+                    )}
+                    {state.status === "processing" && (
+                      <div className="flex items-center gap-2">
+                        <span className="animate-pulse" style={{ color: config.color }}>●</span>
+                        <span className="text-gray-500 text-xs">分析中...</span>
+                      </div>
+                    )}
+                    {state.status === "complete" && state.response && (
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {state.response}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar - Floating Status */}
+      <div className="absolute bottom-4 left-4 right-4 flex justify-center pointer-events-none">
+        <div className="pointer-events-auto bg-black/60 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg px-6 py-3">
+          <div
+            className={`text-sm ${
+              anyProcessing
+                ? "text-[#FF6600]"
+                : allComplete
+                ? "text-green-500"
+                : "text-gray-500"
+            }`}
+          >
+            {anyProcessing
+              ? "● MAGI 系統分析中..."
+              : allComplete
+              ? "● 決議完成"
+              : "○ 等待提問"}
+          </div>
         </div>
       </div>
     </div>
@@ -116,226 +276,136 @@ export const DesktopLayout: React.FC<LayoutProps> = ({
 
 // --- Mobile Layout Component ---
 export const MobileLayout: React.FC<LayoutProps> = ({
-  proposal, // Use proposal state
-  geminiDecisionLoading,
-  geminiDecision,
+  agentStates,
+  currentTask,
+  isExecuting,
+  executeTask,
+  resetAgents,
   bgColorBalthasar,
   bgColorCasper,
   bgColorMelchior,
-  decisionText,
   notoSansTCClassName,
-  onProposalLoaded, // Now we'll use it
-  onProposalContextUpdate, // Context update callback
-  proposalContext, // Proposal context for chatbot
 }) => {
-  // Chat functionality using AI SDK
-  const [input, setInput] = useState('');
-  const { messages, sendMessage, status } = useChat({
-    api: '/api/chat',
-  });
+  const [question, setQuestion] = useState("");
+  const [showResults, setShowResults] = useState(false);
 
-  const isLoading = status === 'streaming';
-
-  // Handle try example button
-  const handleTryExample = () => {
-    const exampleUrl = 'https://snapshot.box/#/s:aavedao.eth/proposal/0x62996204d8466d603fe8c953176599db02a23f440a682ff15ba2d0ca63dda386';
-    sendMessage(exampleUrl, {
-      body: {
-        proposalContext,
-      },
-    });
-  };
-
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim() && !isLoading) {
-      console.log('MobileLayout sending message with context:', {
-        hasContext: !!proposalContext,
-        contextPreview: proposalContext ? proposalContext.substring(0, 100) + '...' : 'None'
-      });
-      sendMessage(input, {
-        body: {
-          proposalContext,
-        },
-      });
-      setInput('');
+  const handleSubmit = () => {
+    if (question.trim()) {
+      executeTask(question.trim());
+      setShowResults(true);
     }
   };
 
-  // Handle keydown for textarea
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
+  const anyProcessing = AGENT_IDS.some(
+    (id) => agentStates[id].status === "processing"
+  );
 
   return (
-    // Use flex-col and h-dvh for vertical distribution to account for browser UI
-    <div className="flex flex-col h-full bg-black font-mono text-sm">
-      {/* Magi UI Section (2/5 height) */}
-      <div className="h-[40%] overflow-hidden p-4 pt-6 flex flex-col items-center justify-center relative border-b border-[#FF6600]/50">
-        {/* Simplified Header */}
-        <div className="text-[#FF6600] text-center mb-2">
-          <div className={`${notoSansTCClassName} text-2xl font-bold`}>
-            提訴 / 決議
+    <div className="relative h-full bg-black font-mono text-sm overflow-hidden">
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 p-3 z-10">
+        <div className="bg-black/70 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg px-4 py-2 flex justify-between items-center">
+          <div className={`${notoSansTCClassName} text-xl font-bold text-[#FF6600]`}>
+            MAGI
           </div>
-          <div className="text-xs mt-1">Code: 666</div>
-        </div>
-
-        {/* MAGI Components - Smaller & Centered */}
-        <div className="absolute bottom-0 middle h-72">
-          <ClippedRecBal color={bgColorBalthasar}>
-            <div className="text-black text-sm font-black p-1">BALTHASAR·2</div>
-          </ClippedRecBal>
-        </div>
-
-        <div className="absolute bottom-0 left-0 h-32">
-          <ClippedRecCas color={bgColorCasper}>
-            <div className="text-black text-sm font-black p-1">CASPER·3</div>
-          </ClippedRecCas>
-        </div>
-
-        <div className="absolute bottom-0 right-0 h-32">
-          <ClippedRecMel color={bgColorMelchior}>
-            <div className="text-black text-sm font-black p-1">MELCHIOR·1</div>
-          </ClippedRecMel>{" "}
-        </div>
-
-        {/* Decision Text Display */}
-        <div className="flex items-center justify-center mt-2">
-          {!geminiDecisionLoading && geminiDecision && (
-            <div className="p-0.5 border border-[#FF6600]">
-              <div
-                className={`${notoSansTCClassName} p-1 border border-[#FF6600] items-center text-lg`}
-                style={{ color: bgColorBalthasar }}
-              >
-                {decisionText[geminiDecision as keyof typeof decisionText] ||
-                  "未知"}
-              </div>
-            </div>
-          )}
-        </div>
-        {/* MAGI center node */}
-        <div
-          className={`${notoSansTCClassName} text-center text-[#FF6600] font-bold text-md mt-1`}
-        >
-          MAGI
-        </div>
-        {/* Processing Text */}
-        <div
-          className={`absolute bottom-1 right-2 text-[#00FF66] text-[10px] ${
-            geminiDecisionLoading ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          PROCESSING DATA
+          <div className="flex items-center gap-2">
+            {AGENT_IDS.map((agentId) => {
+              const config = AGENT_CONFIGS[agentId];
+              const state = agentStates[agentId];
+              return (
+                <div
+                  key={agentId}
+                  className={`w-2 h-2 rounded-full ${
+                    state.status === "processing" ? "animate-pulse" : ""
+                  }`}
+                  style={{ backgroundColor: config.color }}
+                />
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* PropUI Section (1/5 height) */}
-      <div className="h-[20%] overflow-hidden border-b border-[#FF6600]/50">
-        <PropUI
-          content={proposal?.body}
-          choices={proposal?.choices}
-          onProposalLoaded={onProposalLoaded}
-          onProposalContextUpdate={onProposalContextUpdate}
+      {/* MAGI Visualization */}
+      <div className="absolute inset-0 flex items-center justify-center pt-16 pb-48">
+        <MagiSystem
+          colorBalthasar={bgColorBalthasar}
+          colorCasper={bgColorCasper}
+          colorMelchior={bgColorMelchior}
+          scale={0.45}
+          contentBalthasar={
+            <div className="text-black text-xs font-black">BALTHASAR·2</div>
+          }
+          contentCasper={
+            <div className="text-black text-xs font-black">CASPER·3</div>
+          }
+          contentMelchior={
+            <div className="text-black text-xs font-black">MELCHIOR·1</div>
+          }
         />
       </div>
 
-      {/* Chat Section (2/5 height) using AI SDK */}
-      <div className="h-[40%] flex flex-col border-l border-[#FF6600]/50 bg-black text-white font-mono">
-        {/* Message display area */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-4 hide-scrollbar">
-          {/* Welcome message when no messages */}
-          {messages.length === 0 && (
-            <div className="flex flex-col items-start">
-              <div className="max-w-[80%] px-3 py-2 rounded-md bg-[#FF6600]/20 border border-[#FF6600]/50">
-                <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
-                  {proposalContext
-                    ? "Proposal loaded! Ask me anything about this governance proposal."
-                    : "Welcome to MAGI System. Select a proposal from the left panel to start analysis, or ask general questions."
-                  }
-                </p>
-                {!proposalContext && (
-                  <div className="mt-2">
-                    <button
-                      onClick={handleTryExample}
-                      className="text-[10px] sm:text-xs bg-[#FF6600] hover:bg-[#FF6600]/80 text-white px-2 py-1 rounded"
-                    >
-                      Try Aave Proposal Example
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex flex-col ${
-                message.role === "user" ? "items-end" : "items-start"
-              }`}
-            >
-              <div
-                className={`max-w-[80%] px-3 py-2 rounded-md ${
-                  message.role === "user"
-                    ? "bg-[#00AAFF]/30 border border-[#00AAFF]/50"
-                    : "bg-[#FF6600]/20 border border-[#FF6600]/50"
-                }`}
+      {/* Bottom Panel */}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="bg-black/70 backdrop-blur-sm border border-[#FF6600]/30 rounded-lg p-4">
+          {!showResults ? (
+            <>
+              <Textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="有什麼需要決定的事？"
+                disabled={isExecuting}
+                rows={2}
+                className="bg-black/50 border-[#FF6600]/30 text-white text-sm resize-none mb-3"
+              />
+              <Button
+                onClick={handleSubmit}
+                disabled={isExecuting || !question.trim()}
+                className="w-full bg-[#FF6600] hover:bg-[#FF6600]/80 text-black"
               >
-                {message.role === "user" ? (
-                  <p className="text-xs sm:text-sm whitespace-pre-wrap break-words">
-                    {message.content}
-                  </p>
-                ) : (
-                  <Response className="prose prose-xs prose-invert max-w-none">
-                    {message.content}
-                  </Response>
-                )}
+                <Send className="w-4 h-4 mr-2" />
+                詢問 MAGI
+              </Button>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs ${anyProcessing ? "text-[#FF6600]" : "text-green-500"}`}>
+                  {anyProcessing ? "● 分析中..." : "● 完成"}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    resetAgents();
+                    setShowResults(false);
+                    setQuestion("");
+                  }}
+                  className="h-6 text-xs text-gray-500"
+                >
+                  <RotateCcw className="w-3 h-3 mr-1" />
+                  重新提問
+                </Button>
               </div>
-            </div>
-          ))}
-
-          {/* Loading indicator */}
-          {isLoading && (
-            <div className="flex flex-col items-start">
-              <div className="max-w-[80%] px-3 py-2 rounded-md bg-[#FF6600]/20 border border-[#FF6600]/50">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="animate-spin h-4 w-4" />
-                  <p className="text-xs sm:text-sm">MAGI System processing...</p>
-                </div>
-              </div>
+              {AGENT_IDS.map((agentId) => {
+                const config = AGENT_CONFIGS[agentId];
+                const state = agentStates[agentId];
+                return (
+                  <div key={agentId} className="flex items-start gap-2 py-2 border-t border-[#FF6600]/10">
+                    <div className="w-2 h-2 rounded-full mt-1" style={{ backgroundColor: config.color }} />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-bold" style={{ color: config.color }}>
+                        {config.displayName}
+                      </span>
+                      <p className="text-xs text-gray-400 mt-1 truncate">
+                        {state.status === "complete" ? state.response : "分析中..."}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-        </div>
-
-        {/* Input area */}
-        <div className="flex-none p-4 border-t border-[#FF6600]/50 bg-black">
-          <form onSubmit={handleSubmit} className="flex items-center space-x-2">
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={proposalContext ? "Ask about this proposal..." : "Enter Snapshot link or ID..."}
-              disabled={isLoading}
-              rows={1}
-              className="bg-gray-900 border-gray-700 text-white text-base sm:text-sm flex-1 resize-none whitespace-pre-wrap break-words min-w-0"
-            />
-            <Button
-              type="submit"
-              disabled={isLoading || !input.trim()}
-              className="bg-[#FF6600] hover:bg-[#FF6600]/80 self-end"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send size={18} />
-              )}
-            </Button>
-          </form>
         </div>
       </div>
     </div>
